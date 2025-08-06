@@ -1,0 +1,92 @@
+{
+    "folders":
+    [
+    {
+      "name": "riscv_workspace",
+      "path": "/home/matthew/project/riscv_workspace/",
+      "file_exclude_patterns":
+      [
+        //"*.rc",
+        "*.pdf",
+        //"*.bmp",
+        "*.exe",
+        "*.tdc",
+        "*.cbp",
+        "*.dbg",
+        "*.layout",
+        "*.dev",
+        "*.ppm",
+        //"*.tar",
+        //"*.tgz",
+        //".gitignore",
+        ".gitattributes",
+        ".dir-locals.el",
+        //".gitlab-ci.yml",
+        ".travis.yml",
+        "LICENSE",
+        "CONTRIBUTING.md"
+        //"README.md"
+      ],
+      "folder_exclude_patterns":
+      [
+        //"csrc",
+        //".github"
+        //"AN.DB",
+        //"work.verdi.lib++"
+      ],
+    },
+    {
+      "name": "soc_top",
+      "path": "/home/matthew/project/riscv_workspace/1-rtl/soc/soc_top",
+      "file_exclude_patterns":
+      [
+        //"*.rc",
+        "*.pdf",
+        //"*.bmp",
+        "*.exe",
+        "*.tdc",
+        "*.cbp",
+        "*.dbg",
+        "*.layout",
+        "*.dev",
+        "*.ppm",
+        //"*.tar",
+        //"*.tgz",
+        ".gitignore",
+        ".gitattributes",
+        ".dir-locals.el",
+        //".gitlab-ci.yml",
+        ".travis.yml",
+        "LICENSE",
+        "CONTRIBUTING.md"
+        //"README.md"
+      ],
+      "folder_exclude_patterns":
+      [
+        //"csrc",
+        //".github"
+      ],
+    },
+
+  ],
+
+
+  "settings":
+    {
+        "detect_indentation": false,
+        "font_size":11,
+        "tab_size": 2,
+        "translate_tabs_to_spaces": true,
+        "trim_trailing_white_space_on_save": true,
+        "word_wrap": false,
+    },
+  "build_systems":
+  [
+        {
+            "file_regex": "^[ ]*File \"(...*?)\", line ([0-9]*)",
+            "name": "Anaconda Python Builder",
+            "selector": "source.python",
+            "shell_cmd": "\"python\" -u \"$file\""
+        }
+    ],
+}
