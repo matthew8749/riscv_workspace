@@ -1,0 +1,5 @@
+T1:
+wr_clk posedge
+wr_data = 33;
+wr_req  = 1;
+
