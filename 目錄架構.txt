@@ -1,0 +1,100 @@
+目錄架構
+
+prj_000 -
+        dc_syn   -
+        CDC      -
+        RDC      -
+        LINT     -
+        fpga_syn -
+        makefile - Makefiles
+
+        sim - Ｎ 個 simulation env.
+            - sim_000
+            - sim_001
+            - sim_002
+            - sim_003
+            - sim_004
+
+        rtl - soc - soc_top: 放 IP 以外的 design(比如說一些控制module)
+                  - dip_000: digital IP 000
+                  - dip_001
+                  - dip_002
+                  - dip_003
+                  - dip_004
+                  - dip_005
+                  - dip_006
+                  - aip_000: analog IP 000
+            - sim_model    : 放 testbench
+                  - sim_top: testbench of soc_top.sv
+                  - mdl_000
+                  - mdl_001
+                  - mdl_002
+                  - mdl_003
+                  - mdl_004
+                  - mdl_005
+            - file_list: 盡可能用 link; file_list 不能再包 file_list
+                  - soc_top.f
+                  - dip_000.f
+                  - dip_001.f
+                  - dip_002.f
+                  - dip_003.f
+                  - dip_004.f
+                  - dip_005.f
+                  - dip_006.f
+                  - aip_000.f
+
+                  - sim_top.f
+                  - mdl_000.f
+                  - mdl_001.f
+                  - mdl_002.f
+                  - mdl_003.f
+                  - mdl_004.f
+                  - mdl_005.f
+            - macro: 巨集定義
+                  - bhvr
+                        - iopad
+                        - ram
+                        - rom
+
+            - share: 共用檔案
+
+舉例
+要寫一個async_fifo
+在 "rtl/soc/" 中創建 "/dip_async_fifo" ，
+  裡面放 async_fifo_top.sv 和 所有組成他的小module
+
+而 simulation的部分則是將 創建一個資料夾 /mdl_async_fifo
+  裡面放模擬的testbench --> sim_async_fifo.sv
+  或是其他在模擬時才用的到的檔案
+
+  這時需要創建filelist
+  1.dip_sync_fifo.f
+  2.mdl_sync_fifo.f  (可以將 1.dip_sync_fifo.f 包進來，因為這是模擬時的最上層)
+
+
+
+
+// ***************************************/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/***\**\****/**/**
+// filelist 中 +incdir+ 和`include 的用法  /**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/*****\**\**/**/***
+// *************************************/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/*******\**\/**/****
+
++incdir+ 選項作用：指定包含檔案（如.vh 檔案）所在的目錄路徑。
+    用途：告訴編譯器在這些目錄中尋找\include` 指令中引用的檔案。
+    範例：+incdir+src/include/ 讓編譯器在src/include/ 目錄中尋找包含文件
+
+`include 指令作用：在Verilog 原始檔中插入另一個檔案的內容。
+    用途：實際上將包含檔案的內容插入到使用\include` 指令的檔案中。
+    範例：\include "definitions.vh"將definitions.vh` 檔案的內容插入到目前檔案中。
+
+為什麼需要 \include` 指令：
+    儘管+incdir+ 選項告訴編譯器在哪裡尋找包含文件，但它不會自動將這些文件包含到你的Verilog 原始檔中。
+    你仍然需要使用` include 指令在需要的地方明確地包含這些檔案。
+    但有時候你會發現，沒有在verilog 原始檔開頭使用include 指令，竟然也能編譯成功，這是為什麼？
+
+推薦做法：
+    儘管有些工具可能能夠自動處理包含路徑並成功編譯，但為了確保程式碼的可移植性和可維護性，
+    建議使用明確的\include` 指令來包含必要的檔案。這有助於避免在不同工具或環境下的行為差異。
+
+結論：
+    如果你的專案能夠在不使用\include指令的情況下成功編譯，這可能是由於你使用的工具具有自動包含檔案的特性。
+    然而，為了確保程式碼在各種環境下的一致性和可維護性，建議明確地使用`include` 指令來包含必要的檔案。這樣可以避免因工具行為差異而導致的潛在問題。
