@@ -11,71 +11,108 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-include ~/project/riscv_workspace/3-script/makefile/firmware.mk
 include ~/project/riscv_workspace/3-script/makefile/set_dir_path.mk
 
-.PHONY:build clean sim simc sim_vcs elb_vcs verdi cverdi clrverdi clrvcs simc opt opt lib clean help
-
+.PHONY: help
+.PHONY: sim_r sim_r_clr
+.PHONY: sim_vcs sim_vcs_all elb_vcs
+.PHONY: verdi cverdi
+.PHONY: clr_verdi clr_vcs clr_sim clr_fw clean
 
 mkfile_path 	:= $(dir $(abspath $(firstword $(MAKEFILE_LIST))))
 
-VSIM					?= vsim
-VSIM_FLAGS		= -gLOAD_L2=JTAG
-VSIM_SUPPRESS	= -suppress vsim-3009 -suppress vsim-8683 -suppress vsim-8386
-VLOG					?= vlog
-VLOG_FLAGS    =
+# ========================================================================================
+# 	                  __ _                       _   _
+# 	  ___ ___  _ __  / _(_) __ _ _   _ _ __ __ _| |_(_) ___  _ __  ___
+# 	 / __/ _ \| '_ \| |_| |/ _` | | | | '__/ _` | __| |/ _ \| '_ \/ __|
+# 	| (_| (_) | | | |  _| | (_| | |_| | | | (_| | |_| | (_) | | | \__ \
+# 	 \___\___/|_| |_|_| |_|\__, |\__,_|_|  \__,_|\__|_|\___/|_| |_|___/
+# 	                       |___/
+# ========================================================================================
+# configurations
+CFG_PICORV32	:= 1
 
-# vopt +acc test_counter -o testcounter_opt （使用vopt表示進行設計優化，+acc表示完全可見，-o testcounter_opt表示把優化結果輸出為新的名字。）
-# vsim testcounter_opt （vsim表示開始仿真，名字選擇了優化之後的結果)
-VOPT            ?= vopt
-VOPT_FLAGS      ?= +acc
-
-
-SVLIB					=  ../1-rtl/tb/remote_bitbang/librbs
-
-# top-level (tesbench)
-SIM_TOP      	:= testbench
-PROJ_NAME			:=
-
-CFG_PROJ_NAME	 :=
+CFG_PROJ_NAME	:=
 # soc_top, sim_timing_gen_tb, canny_tb, sim_img_processing_top, sim_sync_fifo
-#CFG_SIM_TOP			:= sim_$(SIM_TOP)
-CFG_SIM_TOP			:= $(SIM_TOP)
-CFG_FSDB_FILE		:= $(CFG_SIM_TOP)_tb
-SIM_ARG					:=
+CFG_SIM_TOP		:= testbench
+CFG_FSDB_FILE	:= $(CFG_SIM_TOP)_tb
+SIM_ARG				:=
 
+# ========================================================================================
+# 	 _ _     _
+# 	| (_)___| |_
+# 	| | / __| __|
+# 	| | \__ \ |_
+# 	|_|_|___/\__|
+# ========================================================================================
 #list
-#LST_SYTM		  	:= 0.system.f
-LST_VHDL		  := 0.system_vhdl.f
-LST_SYSV		  := 0.system_sv.f
-#LST_TOP		  	:= 0.top_filelist.f
 
+#LST_SYTM		  											:= 0.system.f
+LST_VHDL													:= 0.system_vhdl.f
+LST_SYSV													:= 0.system_sv.f
+LST_MCRB													:= 0.macro.bhvr.f
+LST_IPSH													:= 0.share.vlog.f
+LST_IPRM													:= 1.dip_sp_ram.f
+#LST_TOP		  											:= 0.top_filelist.f
+
+# ========================================================================================
+# 	     _ _               _             _
+# 	  __| (_)_ __ ___  ___| |_ ___  _ __(_) ___  ___
+# 	 / _` | | '__/ _ \/ __| __/ _ \| '__| |/ _ \/ __|
+# 	| (_| | | | |  __/ (__| || (_) | |  | |  __/\__ \
+# 	 \__,_|_|_|  \___|\___|\__\___/|_|  |_|\___||___/
+# ========================================================================================
 # directories
-DIR_VCS_HOME   := /opt/synopsys/vcs/Q-2020.03-SP2-7
-DIR_VERDI_HOME := /opt/synopsys/verdi/R-2020.12-SP1
-DIR_RTL_ROOT	 := $(MY_HOME)/project/riscv_workspace/1-rtl
-DIR_LST_ROOT	 := $(MY_HOME)/project/riscv_workspace/1-rtl/file_list
+DIR_VCS_HOME   										:= /opt/synopsys/vcs/Q-2020.03-SP2-7
+DIR_VERDI_HOME 										:= /opt/synopsys/verdi/R-2020.12-SP1
+DIR_RTL_ROOT	 										:= $(MY_HOME)/project/riscv_workspace/1-rtl
+DIR_LST_ROOT	 										:= $(MY_HOME)/project/riscv_workspace/1-rtl/file_list
 
+
+export ROOT        								= $(MY_HOME)/project/riscv_workspace
+export RTL_ROOT    								= $(DIR_RTL_ROOT)
+export LST_ROOT    								= $(DIR_LST_ROOT)
 
 #FSDB_MAX_VAR_ELEM := 3000000
+
+# ========================================================================================
+# 	             _   _
+# 	  ___  _ __ | |_(_) ___  _ __  ___
+# 	 / _ \| '_ \| __| |/ _ \| '_ \/ __|
+# 	| (_) | |_) | |_| | (_) | | | \__ \
+# 	 \___/| .__/ \__|_|\___/|_| |_|___/
+# 	      |_|
+# ========================================================================================
 # options
 OPT_VCS         := -full64 -override_timescale=1ns/1ps -top $(CFG_SIM_TOP) +vcs+lic+wait +notimingchecks +nospecify +vpi \
 							     -P $(DIR_VERDI_HOME)/share/PLI/VCS/LINUX64/verdi.tab $(DIR_VERDI_HOME)/share/PLI/VCS/LINUX64/pli.a -l vcs.log
 OPT_VCS         += -LDFLAGS -rdynamic
 OPT_VCS         += +lint=TFIPC-L -error=IWNF
 
+OPT_VCS         +=  +verbose +verdi +plusarg_save
+
+
 #add for picorv32
 PICORV32_OPT    := +trace +verbose +noerror +verdi +plusarg_save +define+COMPRESSED_ISA
 
-#add
-#OPT_VCS         += +plusarg_save +verbose +verdi
+
+
 
 #OPT_VCS         += +plusarg_save +verbose +bootmode=fast_debug_preload +fsdb+max_var_elem=30000000
 #+stimuli=./vectors/stim.txt
 #+bootmode=jtag +jtag_openocd
 #fast_debug_preload
 
-# commands
+
+
+# ========================================================================================
+# 	                                               _
+# 	  ___ ___  _ __ ___  _ __ ___   __ _ _ __   __| |___
+# 	 / __/ _ \| '_ ` _ \| '_ ` _ \ / _` | '_ \ / _` / __|
+# 	| (_| (_) | | | | | | | | | | | (_| | | | | (_| \__ \
+# 	 \___\___/|_| |_| |_|_| |_| |_|\__,_|_| |_|\__,_|___/
+# ========================================================================================
+
 #CMD_VCS_VHDL_ANA      := $(DIR_VCS_HOME)/bin/vhdlan -full64 -functional_vital
 CMD_VCS_VHDL_ANA      := $(DIR_VCS_HOME)/bin/vhdlan -full64
 
@@ -87,8 +124,10 @@ CMD_VCS_SYSV_ANA      := $(DIR_VCS_HOME)/bin/vlogan -full64 -sverilog
 CMD_VCS_SYSV_ANA      += +define+TARGET_SIMULATION  +define+TARGET_VCS
 CMD_VCS_SYSV_ANA      += -assert svaext -debug_acc+pp
 #add for picorv32
-CMD_VCS_SYSV_ANA      += $(PICORV32_OPT)
 
+ifdef CFG_PICORV32
+	CMD_VCS_SYSV_ANA    += $(PICORV32_OPT)
+endif
 
 CMD_VERDI_VHDL_COM    := $(DIR_VERDI_HOME)/bin/vhdlcom
 CMD_VERDI_VLOG_COM    := $(DIR_VERDI_HOME)/bin/vericom
@@ -103,10 +142,9 @@ CMD_VERDI             := $(DIR_VERDI_HOME)/bin/verdi
 CMD_VCS_ELB           := vcs $(OPT_VCS) $(SIM_ARG)
 CMD_SIMV              := ./simv -l simv.log
 CMD_SIMV              += $(PICORV32_OPT)
-#
-export ROOT        			= $(MY_HOME)/project/riscv_workspace
-export RTL_ROOT    			= $(DIR_RTL_ROOT)
-export LST_ROOT    			= $(DIR_LST_ROOT)
+
+
+
 
 .PHONY: help
 help: Makefile
@@ -121,50 +159,35 @@ help: Makefile
 	} \
 	{ lastLine = $$0 }' $(MAKEFILE_LIST)
 
-## Compile RTL with Questasim
-all: lib build opt
-
-# build the bitbang library, needed for simulating a jtag bridge to OpenOCD
-.PHONY: build-deps
-build-deps:
-	$(MAKE) -C ../1-rtl/tb/remote_bitbang all
-
-.PHONY: clean-deps
-clean-deps:
-	$(MAKE) -C ../1-rtl/tb/remote_bitbang clean
-
-## vsim targets
-.PHONY: sim
-## Simulate RTL with Questasim (GUI)
-sim:
-	$(VSIM) -64 -gui vopt_tb \
-		$(VSIM_SUPPRESS) \
-		+UVM_NO_RELNOTES -stats -t ps \
-		-sv_lib $(SVLIB) $(VSIM_FLAGS) \
-		-do "set StdArithNoWarnings 1; set NumericStdNoWarnings 1"
-
-.PHONY: simc
-## vsim targets
-
-.PHONY: cvcs
-cvcs: sim_vcs cverdi
 
 
-.PHONY: sim_vcs
+
+
+## RE simulate RTL and update verdi
+sim_r: sim_r_clr cverdi
+
+# 區別有沒有clean
+sim_r_clr:
+	$(MAKE) sim_vcs_all | tee ./LOG/sim_vcs.log
+
+
 ## Simulate RTL with VCS (GUI)
-sim_vcs: ana_vcs elb_vcs
+sim_vcs:  clr_sim
+	$(MAKE) sim_vcs_all | tee ./LOG/sim_vcs.log
+
+sim_vcs_all: ana_vcs elb_vcs
 	@echo "*-.,_,.-*'*'*-.,_,.-*-.,_,.-*'*'*-.,_,.-*-.,_,.-*'*'*-.,_,.-*-.,_,.-*"
 	@echo ".                                                                   ."
 	@echo ". #SIMTAG#   simulating                                             ."
 	@echo ".                                                                   ."
 	@echo "*-.,_,.-*'*'*-.,_,.-*-.,_,.-*'*'*-.,_,.-*-.,_,.-*'*'*-.,_,.-*-.,_,.-*"
 	$(CMD_SIMV)
-.PHONY: ana_vcs
+
 ## ana filelist
 ana_vcs:
-	$(CMD_VCS_SYSV_ANA) -work work -file $(DIR_LST_ROOT)/0.share.vlog.f
-	$(CMD_VCS_VLOG_ANA) -work work -file $(DIR_LST_ROOT)/0.macro.bhvr.f
-	$(CMD_VCS_SYSV_ANA) -work work -file $(DIR_LST_ROOT)/1.dip_sp_ram.f
+	$(CMD_VCS_SYSV_ANA) -work work -file $(DIR_LST_ROOT)/$(LST_IPSH)
+	$(CMD_VCS_VLOG_ANA) -work work -file $(DIR_LST_ROOT)/$(LST_MCRB)
+	$(CMD_VCS_SYSV_ANA) -work work -file $(DIR_LST_ROOT)/$(LST_IPRM)
 ifeq ($(CFG_SIM_TOP), sim_soc)
 	$(CMD_VCS_SYSV_ANA) -work work -file $(DIR_LST_ROOT)/soc_top.f
 	$(CMD_VCS_SYSV_ANA) -work work -file $(DIR_LST_ROOT)/sim_soc.f
@@ -186,12 +209,10 @@ ifeq ($(CFG_SIM_TOP), testbench)
 endif
 
 
-.PHONY: elb_vcs
 ## elaborate
 elb_vcs:
 	$(CMD_VCS_ELB)
 
-.PHONY: verdi
 ## Simulate RTL wave with verdi (GUI)
 verdi: cverdi
 	@echo "*-.,_,.-*'*'*-.,_,.-*-.,_,.-*'*'*-.,_,.-*-.,_,.-*'*'*-.,_,.-*-.,_,.-*"
@@ -224,9 +245,9 @@ endif
 cverdi:
 #	@$(CMD_VERDI_VHDL_COM) -lib work.verdi -2000 -file $(DIR_RTL_ROOT)/sim/$(LST_VHDL)
 #	@$(CMD_VERDI_VLOG_COM) -lib work.verdi -sv   -file $(DIR_RTL_ROOT)/sim/$(LST_SYSV)
-	@$(CMD_VERDI_VLOG_COM) -lib work.verdi -sv  -file $(DIR_LST_ROOT)/0.macro.bhvr.f
-	@$(CMD_VERDI_VLOG_COM) -lib work.verdi -sv  -file $(DIR_LST_ROOT)/0.share.vlog.f
-	@$(CMD_VERDI_VLOG_COM) -lib work.verdi -sv  -file $(DIR_LST_ROOT)/1.dip_sp_ram.f
+	@$(CMD_VERDI_VLOG_COM) -lib work.verdi -sv  -file $(DIR_LST_ROOT)/$(LST_MCRB)
+	@$(CMD_VERDI_VLOG_COM) -lib work.verdi -sv  -file $(DIR_LST_ROOT)/$(LST_IPSH)
+	@$(CMD_VERDI_VLOG_COM) -lib work.verdi -sv  -file $(DIR_LST_ROOT)/$(LST_IPRM)
 ifeq ($(CFG_SIM_TOP), sim_soc)
 	@$(CMD_VERDI_VLOG_COM) -lib work.verdi -sv  -file $(DIR_LST_ROOT)/soc_top.f
 	@$(CMD_VERDI_VLOG_COM) -lib work.verdi -sv  -file $(DIR_LST_ROOT)/sim_soc.f
@@ -246,33 +267,10 @@ ifeq ($(CFG_SIM_TOP), testbench)
 	@$(CMD_VERDI_VLOG_COM) -lib work.verdi -sv -file $(DIR_LST_ROOT)/1.dip_picorv32.f
 	@$(CMD_VERDI_VLOG_COM) -lib work.verdi -sv -file $(DIR_LST_ROOT)/2.mdl_picorv32.f
 endif
-run_prim:
-	./run_prim_assert
 
-.PHONY: simc
-## Simulate RTL with Questasim
-simc:
-	$(VSIM) -64 -c vopt_tb \
-		$(VSIM_SUPPRESS) \
-		+UVM_NO_RELNOTES -stats -t ps \
-		-sv_lib $(SVLIB) $(VSIM_FLAGS) \
-		-do "set StdArithNoWarnings 1; set NumericStdNoWarnings 1" \
-		-do "run -all" \
-		-do "quit -code [examine -radix decimal sim:/tb_pulp/exit_status]"
 
-.PHONY: opt
-opt:
-	$(VOPT) $(VOPT_FLAGS) -o vopt_tb $(SIM_TOP) -work work
-
-.PHONY: opt
-build: build-deps
-	$(VSIM) -c -do 'source compile.tcl; quit'
-
-.PHONY: lib
-lib:
-
-.PHONY:clrvcs
-clrvcs:
+.PHONY:clr_vcs
+clr_vcs:
 	@echo "*-.,_,.-*'*'*-.,_,.-*-.,_,.-*'*'*-.,_,.-*-.,_,.-*'*'*-.,_,.-*-.,_,.-*"
 	@echo ".                                                                   ."
 	@echo ". #SIMTAG#   clean vcs                                              ."
@@ -282,8 +280,8 @@ clrvcs:
 	@-rm -f simv ucli.key .vlogansetup.args .vlogansetup.env
 	@-rm -f $(CFG_ROM_INIT_FILE) $(CFG_0RCORE_INIT_FILE) $(CFG_SPI_INIT_FILE)
 
-.PHONY:clrverdi
-clrverdi:
+.PHONY:clr_verdi
+clr_verdi:
 	@echo "*-.,_,.-*'*'*-.,_,.-*-.,_,.-*'*'*-.,_,.-*-.,_,.-*'*'*-.,_,.-*-.,_,.-*"
 	@echo ".                                                                   ."
 	@echo ". #SIMTAG#   clean verdi                                            ."
@@ -292,20 +290,75 @@ clrverdi:
 	@-rm -rf verdiLog vericomLog vhdlcomLog work.verdi.lib++ novas.conf novas_dump.log
 	@-rm -rf aliasextractLog extracted.src_alias
 
-.PHONY: clean
+
 ## Remove all compiled RTL
-clean: clean-deps clrvcs clrverdi
+clr_sim: clr_vcs clr_verdi
+	rm -rf 64 AN.DB
+	rm -rf novas* simv work.* .vhdl_* vcs.log vc_hdrs.h debug.log
+
+## Remove all
+clean: clr_vcs clr_verdi clr_fw
 	$(RM) -r work
 	$(RM) modelsim.ini
-	rm -rf ./fsdb/$(SIM_TOP).fsdb
 	rm -rf 64 simv.daidir verdiLog vericomLog vhdlcomLog AN.DB
 	rm -rf novas* simv work.* .vhdl_* vcs.log vc_hdrs.h debug.log
 
-.PHONY: vclean
-## Remove all compiled RTL
-vclean: clrvcs clrverdi
-	$(RM) -r work
-	$(RM) modelsim.ini
-	#rm -rf ./fsdb/$(SIM_TOP).fsdb
-	rm -rf 64 simv.daidir verdiLog vericomLog vhdlcomLog AN.DB
-	rm -rf novas* simv work.* .vhdl_* vcs.log vc_hdrs.h debug.log
+
+
+# ███████╗██╗██████╗ ███╗   ███╗██╗    ██╗ █████╗ ██████╗ ███████╗
+# ██╔════╝██║██╔══██╗████╗ ████║██║    ██║██╔══██╗██╔══██╗██╔════╝
+# █████╗  ██║██████╔╝██╔████╔██║██║ █╗ ██║███████║██████╔╝█████╗
+# ██╔══╝  ██║██╔══██╗██║╚██╔╝██║██║███╗██║██╔══██║██╔══██╗██╔══╝
+# ██║     ██║██║  ██║██║ ╚═╝ ██║╚███╔███╔╝██║  ██║██║  ██║███████╗
+# ╚═╝     ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝ ╚══╝╚══╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝
+
+PYTHON 																= python3
+COMPRESSED_ISA 												= C
+RISCV_GNU_TOOLCHAIN_INSTALL_PREFIX 		= /opt/riscv
+TOOLCHAIN_PREFIX 											= $(RISCV_GNU_TOOLCHAIN_INSTALL_PREFIX)/bin/riscv32-unknown-elf-
+
+TEST_OBJS 		= $(addsuffix .o,$(basename $(wildcard tests/*.S)))
+FIRMWARE_OBJS = firmware/start.o firmware/irq.o firmware/print.o firmware/hello.o firmware/sieve.o firmware/multest.o firmware/stats.o
+
+GCC_WARNS  		= -Werror -Wall -Wextra -Wshadow -Wundef -Wpointer-arith -Wcast-qual -Wcast-align -Wwrite-strings
+GCC_WARNS 		+= -Wredundant-decls -Wstrict-prototypes -Wmissing-prototypes -pedantic # -Wconversion
+
+## Run
+gen_trace: showtrace.py
+	$(PYTHON) showtrace.py testbench.trace firmware/firmware.elf | tee ./LOG/showtrace.log
+
+## generate picorv32 firmware
+gen_fw:
+	$(MAKE) firmware/firmware.hex | tee ./LOG/gen_fw.log
+
+firmware/firmware.hex: firmware/firmware.bin firmware/makehex.py
+	$(PYTHON) firmware/makehex.py $< 32768 > $@
+
+firmware/firmware.bin: firmware/firmware.elf
+	$(TOOLCHAIN_PREFIX)objcopy -O binary $< $@
+	chmod -x $@
+
+firmware/firmware.elf: $(FIRMWARE_OBJS) $(TEST_OBJS) firmware/sections.lds
+	$(TOOLCHAIN_PREFIX)gcc -Os -mabi=ilp32 -march=rv32im$(subst C,c,$(COMPRESSED_ISA)) -ffreestanding -nostdlib -o $@ \
+		-Wl,--build-id=none,-Bstatic,-T,firmware/sections.lds,-Map,firmware/firmware.map,--strip-debug \
+		$(FIRMWARE_OBJS) $(TEST_OBJS) -lgcc
+	chmod -x $@
+
+firmware/start.o: firmware/start.S
+	$(TOOLCHAIN_PREFIX)gcc -c -mabi=ilp32 -march=rv32im$(subst C,c,$(COMPRESSED_ISA)) -o $@ $<
+
+firmware/%.o: firmware/%.c
+	$(TOOLCHAIN_PREFIX)gcc -c -mabi=ilp32 -march=rv32i$(subst C,c,$(COMPRESSED_ISA)) -Os --std=c99 $(GCC_WARNS) -ffreestanding -nostdlib -o $@ $<
+
+tests/%.o: tests/%.S tests/riscv_test.h tests/test_macros.h
+	$(TOOLCHAIN_PREFIX)gcc -c -mabi=ilp32 -march=rv32im -o $@ -DTEST_FUNC_NAME=$(notdir $(basename $<)) \
+		-DTEST_FUNC_TXT='"$(notdir $(basename $<))"' -DTEST_FUNC_RET=$(notdir $(basename $<))_ret $<
+
+
+## ## Remove all compiled firmware
+clr_fw:
+	rm -vrf $(FIRMWARE_OBJS) $(TEST_OBJS)  \
+		firmware/firmware.elf firmware/firmware.bin firmware/firmware.hex firmware/firmware.map \
+		estbench.trace \
+		testbench_verilator testbench_verilator_dir \
+		LOG/showtrace.log
