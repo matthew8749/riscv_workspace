@@ -93,7 +93,8 @@ OPT_VCS         +=  +verbose +verdi +plusarg_save
 
 
 #add for picorv32
-PICORV32_OPT    := +trace +verbose +noerror +verdi +plusarg_save +define+COMPRESSED_ISA
+#PICORV32_OPT    := +trace +verbose +noerror +verdi +plusarg_save +define+COMPRESSED_ISA
+PICORV32_OPT    := +trace +verbose +noerror +verdi +plusarg_save
 
 
 

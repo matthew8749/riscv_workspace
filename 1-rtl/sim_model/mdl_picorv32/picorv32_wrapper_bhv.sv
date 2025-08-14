@@ -46,7 +46,7 @@ module picorv32_wrapper #(
   axi4_memory #(
     .AXI_TEST (AXI_TEST),
     .VERBOSE  (VERBOSE)
-  ) mem (
+  ) axi4_mem (
     .clk             (clk             ),
     .mem_axi_awvalid (mem_axi_awvalid ),  // i
     .mem_axi_awready (mem_axi_awready ),  // o
@@ -108,48 +108,48 @@ module picorv32_wrapper #(
     .ENABLE_IRQ(1),
     .ENABLE_TRACE(1)
 `endif
-  ) uut (
-    .clk            (clk            ),
-    .resetn         (resetn         ),
-    .trap           (trap           ),
-    .mem_axi_awvalid(mem_axi_awvalid),
-    .mem_axi_awready(mem_axi_awready),
-    .mem_axi_awaddr (mem_axi_awaddr ),
-    .mem_axi_awprot (mem_axi_awprot ),
-    .mem_axi_wvalid (mem_axi_wvalid ),
-    .mem_axi_wready (mem_axi_wready ),
-    .mem_axi_wdata  (mem_axi_wdata  ),
-    .mem_axi_wstrb  (mem_axi_wstrb  ),
-    .mem_axi_bvalid (mem_axi_bvalid ),
-    .mem_axi_bready (mem_axi_bready ),
-    .mem_axi_arvalid(mem_axi_arvalid),
-    .mem_axi_arready(mem_axi_arready),
-    .mem_axi_araddr (mem_axi_araddr ),
-    .mem_axi_arprot (mem_axi_arprot ),
-    .mem_axi_rvalid (mem_axi_rvalid ),
-    .mem_axi_rready (mem_axi_rready ),
-    .mem_axi_rdata  (mem_axi_rdata  ),
-    .irq            (irq            ),
+  ) U0_picorv32_axi (
+    .clk                          ( clk             ),
+    .resetn                       ( resetn          ),
+    .trap                         ( trap            ),
+    .mem_axi_awvalid              ( mem_axi_awvalid ), // o
+    .mem_axi_awready              ( mem_axi_awready ), // i
+    .mem_axi_awaddr               ( mem_axi_awaddr  ), // o
+    .mem_axi_awprot               ( mem_axi_awprot  ), // o
+    .mem_axi_wvalid               ( mem_axi_wvalid  ), // o
+    .mem_axi_wready               ( mem_axi_wready  ), // i
+    .mem_axi_wdata                ( mem_axi_wdata   ), // o
+    .mem_axi_wstrb                ( mem_axi_wstrb   ), // o
+    .mem_axi_bvalid               ( mem_axi_bvalid  ), // i
+    .mem_axi_bready               ( mem_axi_bready  ), // o
+    .mem_axi_arvalid              ( mem_axi_arvalid ), // o
+    .mem_axi_arready              ( mem_axi_arready ), // i
+    .mem_axi_araddr               ( mem_axi_araddr  ), // o
+    .mem_axi_arprot               ( mem_axi_arprot  ), // o
+    .mem_axi_rvalid               ( mem_axi_rvalid  ), // i
+    .mem_axi_rready               ( mem_axi_rready  ), // o
+    .mem_axi_rdata                ( mem_axi_rdata   ), // i
+    .irq                          ( irq             ),
 `ifdef RISCV_FORMAL
-    .rvfi_valid     (rvfi_valid     ),
-    .rvfi_order     (rvfi_order     ),
-    .rvfi_insn      (rvfi_insn      ),
-    .rvfi_trap      (rvfi_trap      ),
-    .rvfi_halt      (rvfi_halt      ),
-    .rvfi_intr      (rvfi_intr      ),
-    .rvfi_rs1_addr  (rvfi_rs1_addr  ),
-    .rvfi_rs2_addr  (rvfi_rs2_addr  ),
-    .rvfi_rs1_rdata (rvfi_rs1_rdata ),
-    .rvfi_rs2_rdata (rvfi_rs2_rdata ),
-    .rvfi_rd_addr   (rvfi_rd_addr   ),
-    .rvfi_rd_wdata  (rvfi_rd_wdata  ),
-    .rvfi_pc_rdata  (rvfi_pc_rdata  ),
-    .rvfi_pc_wdata  (rvfi_pc_wdata  ),
-    .rvfi_mem_addr  (rvfi_mem_addr  ),
-    .rvfi_mem_rmask (rvfi_mem_rmask ),
-    .rvfi_mem_wmask (rvfi_mem_wmask ),
-    .rvfi_mem_rdata (rvfi_mem_rdata ),
-    .rvfi_mem_wdata (rvfi_mem_wdata ),
+    .rvfi_valid                   ( rvfi_valid     ),
+    .rvfi_order                   ( rvfi_order     ),
+    .rvfi_insn                    ( rvfi_insn      ),
+    .rvfi_trap                    ( rvfi_trap      ),
+    .rvfi_halt                    ( rvfi_halt      ),
+    .rvfi_intr                    ( rvfi_intr      ),
+    .rvfi_rs1_addr                ( rvfi_rs1_addr  ),
+    .rvfi_rs2_addr                ( rvfi_rs2_addr  ),
+    .rvfi_rs1_rdata               ( rvfi_rs1_rdata ),
+    .rvfi_rs2_rdata               ( rvfi_rs2_rdata ),
+    .rvfi_rd_addr                 ( rvfi_rd_addr   ),
+    .rvfi_rd_wdata                ( rvfi_rd_wdata  ),
+    .rvfi_pc_rdata                ( rvfi_pc_rdata  ),
+    .rvfi_pc_wdata                ( rvfi_pc_wdata  ),
+    .rvfi_mem_addr                ( rvfi_mem_addr  ),
+    .rvfi_mem_rmask               ( rvfi_mem_rmask ),
+    .rvfi_mem_wmask               ( rvfi_mem_wmask ),
+    .rvfi_mem_rdata               ( rvfi_mem_rdata ),
+    .rvfi_mem_wdata               ( rvfi_mem_wdata ),
 `endif
     .trace_valid    (trace_valid    ),
     .trace_data     (trace_data     )
@@ -185,7 +185,7 @@ module picorv32_wrapper #(
   initial begin
     if (!$value$plusargs("firmware=%s", firmware_file))
       firmware_file = "firmware/firmware.hex";
-    $readmemh(firmware_file, mem.memory);
+    $readmemh(firmware_file, axi4_mem.memory);
     $fsdbDumpMDA;
   end
 

@@ -168,53 +168,53 @@ module picorv32_axi #(
     .PROGADDR_IRQ        (PROGADDR_IRQ        ),
     .STACKADDR           (STACKADDR           )
   ) picorv32_core (
-    .clk      (clk   ),
-    .resetn   (resetn),
-    .trap     (trap  ),
+    .clk                 ( clk                ),
+    .resetn              ( resetn             ),
+    .trap                ( trap               ),
 
-    .mem_valid(mem_valid),
-    .mem_addr (mem_addr ),
-    .mem_wdata(mem_wdata),
-    .mem_wstrb(mem_wstrb),
-    .mem_instr(mem_instr),
-    .mem_ready(mem_ready),
-    .mem_rdata(mem_rdata),
+    .mem_valid           ( mem_valid          ), // o
+    .mem_addr            ( mem_addr           ), // o
+    .mem_wdata           ( mem_wdata          ), // o
+    .mem_wstrb           ( mem_wstrb          ), // o
+    .mem_instr           ( mem_instr          ), // o
+    .mem_ready           ( mem_ready          ), // i
+    .mem_rdata           ( mem_rdata          ), // i
 
-    .pcpi_valid(pcpi_valid),
-    .pcpi_insn (pcpi_insn ),
-    .pcpi_rs1  (pcpi_rs1  ),
-    .pcpi_rs2  (pcpi_rs2  ),
-    .pcpi_wr   (pcpi_wr   ),
-    .pcpi_rd   (pcpi_rd   ),
-    .pcpi_wait (pcpi_wait ),
-    .pcpi_ready(pcpi_ready),
+    .pcpi_valid          ( pcpi_valid         ), // o
+    .pcpi_insn           ( pcpi_insn          ), // o
+    .pcpi_rs1            ( pcpi_rs1           ), // o
+    .pcpi_rs2            ( pcpi_rs2           ), // o
+    .pcpi_wr             ( pcpi_wr            ), // i
+    .pcpi_rd             ( pcpi_rd            ), // i
+    .pcpi_wait           ( pcpi_wait          ), // i
+    .pcpi_ready          ( pcpi_ready         ), // i
 
-    .irq(irq),
-    .eoi(eoi),
+    .irq                 ( irq                ), // i
+    .eoi                 ( eoi                ), // o
 
 `ifdef RISCV_FORMAL
-    .rvfi_valid    (rvfi_valid    ),
-    .rvfi_order    (rvfi_order    ),
-    .rvfi_insn     (rvfi_insn     ),
-    .rvfi_trap     (rvfi_trap     ),
-    .rvfi_halt     (rvfi_halt     ),
-    .rvfi_intr     (rvfi_intr     ),
-    .rvfi_rs1_addr (rvfi_rs1_addr ),
-    .rvfi_rs2_addr (rvfi_rs2_addr ),
-    .rvfi_rs1_rdata(rvfi_rs1_rdata),
-    .rvfi_rs2_rdata(rvfi_rs2_rdata),
-    .rvfi_rd_addr  (rvfi_rd_addr  ),
-    .rvfi_rd_wdata (rvfi_rd_wdata ),
-    .rvfi_pc_rdata (rvfi_pc_rdata ),
-    .rvfi_pc_wdata (rvfi_pc_wdata ),
-    .rvfi_mem_addr (rvfi_mem_addr ),
-    .rvfi_mem_rmask(rvfi_mem_rmask),
-    .rvfi_mem_wmask(rvfi_mem_wmask),
-    .rvfi_mem_rdata(rvfi_mem_rdata),
-    .rvfi_mem_wdata(rvfi_mem_wdata),
+    .rvfi_valid          ( rvfi_valid         ),
+    .rvfi_order          ( rvfi_order         ),
+    .rvfi_insn           ( rvfi_insn          ),
+    .rvfi_trap           ( rvfi_trap          ),
+    .rvfi_halt           ( rvfi_halt          ),
+    .rvfi_intr           ( rvfi_intr          ),
+    .rvfi_rs1_addr       ( rvfi_rs1_addr      ),
+    .rvfi_rs2_addr       ( rvfi_rs2_addr      ),
+    .rvfi_rs1_rdata      ( rvfi_rs1_rdata     ),
+    .rvfi_rs2_rdata      ( rvfi_rs2_rdata     ),
+    .rvfi_rd_addr        ( rvfi_rd_addr       ),
+    .rvfi_rd_wdata       ( rvfi_rd_wdata      ),
+    .rvfi_pc_rdata       ( rvfi_pc_rdata      ),
+    .rvfi_pc_wdata       ( rvfi_pc_wdata      ),
+    .rvfi_mem_addr       ( rvfi_mem_addr      ),
+    .rvfi_mem_rmask      ( rvfi_mem_rmask     ),
+    .rvfi_mem_wmask      ( rvfi_mem_wmask     ),
+    .rvfi_mem_rdata      ( rvfi_mem_rdata     ),
+    .rvfi_mem_wdata      ( rvfi_mem_wdata     ),
 `endif
 
-    .trace_valid(trace_valid),
-    .trace_data (trace_data)
+    .trace_valid         ( trace_valid        ),
+    .trace_data          ( trace_data         )
   );
 endmodule

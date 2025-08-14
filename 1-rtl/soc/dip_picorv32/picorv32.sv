@@ -336,16 +336,16 @@ module picorv32 #(
   reg  [1  :0]                    mem_wordsize;
   reg  [31 :0]                    mem_rdata_word;
   reg  [31 :0]                    mem_rdata_q;
-  reg                             mem_do_prefetch;                                        // 預取一條可能之後要用的指令（但此時不執行）
-  reg                             mem_do_rinst;                                           // 代表當前這 cycle 是在「讀取指令」（fetch）
-  reg                             mem_do_rdata;                                           // 代表當前在「讀取資料」（load）
-  reg                             mem_do_wdata;                                           // 代表當前在「寫入資料」（store）
+  reg                             mem_do_prefetch;     // 預取一條可能之後要用的指令（但此時不執行）
+  reg                             mem_do_rinst;        // 代表當前這 cycle 是在「讀取指令」（fetch）
+  reg                             mem_do_rdata;        // 代表當前在「讀取資料」（load）
+  reg                             mem_do_wdata;        // 代表當前在「寫入資料」（store）
 
-  wire                            mem_xfer;                                               // 資料交換真的「成功發生」的那個 clock cycle
+  wire                            mem_xfer;            // 資料交換真的「成功發生」的那個 clock cycle
   reg                             mem_la_secondword;
   reg                             mem_la_firstword_reg;
   reg                             last_mem_valid;
-  wire   mem_la_firstword         = COMPRESSED_ISA && (mem_do_prefetch || mem_do_rinst) && next_pc[1] && !mem_la_secondword;
+  wire   mem_la_firstword         = COMPRESSED_ISA && (mem_do_prefetch || mem_do_rinst) && next_pc[1] && !mem_la_secondword;               // CSDN note --> 【PicoRV32】學習過程紀錄 & 文章素材
   wire   mem_la_firstword_xfer    = COMPRESSED_ISA && mem_xfer && (!last_mem_valid ? mem_la_firstword : mem_la_firstword_reg);
 
   reg                             prefetched_high_word;
@@ -355,16 +355,26 @@ module picorv32 #(
   wire [31 : 0]                   mem_rdata_latched_noshuffle;
   wire [31 : 0]                   mem_rdata_latched;
 
-  wire mem_la_use_prefetched_high_word = COMPRESSED_ISA && mem_la_firstword && prefetched_high_word && !clear_prefetched_high_word;
-  assign mem_xfer                      = (mem_valid && mem_ready) || (mem_la_use_prefetched_high_word && mem_do_rinst);
+  localparam MEM_STATE_IDEL           = 2'b00; //閒置
+  localparam MEM_STATE_FETCH_OR_READ  = 2'b01;
+  localparam MEM_STATE_WRITE          = 2'b10;
+  localparam MEM_STATE_PREFETCH       = 2'b11;
 
-  wire mem_busy = |{mem_do_prefetch, mem_do_rinst, mem_do_rdata, mem_do_wdata};
-  wire mem_done = resetn && ((mem_xfer && |mem_state && (mem_do_rinst || mem_do_rdata || mem_do_wdata)) || (&mem_state && mem_do_rinst)) &&
-                  (!mem_la_firstword || (~&mem_rdata_latched[1:0] && mem_xfer));
+  wire mem_la_use_prefetched_high_word = COMPRESSED_ISA  &&  mem_la_firstword  &&  prefetched_high_word  &&  !clear_prefetched_high_word;
+  assign mem_xfer                      = (mem_valid && mem_ready)  ||  (mem_la_use_prefetched_high_word && mem_do_rinst);
 
-  assign mem_la_write = resetn && !mem_state && mem_do_wdata;
-  assign mem_la_read  = resetn && ((!mem_la_use_prefetched_high_word && !mem_state && (mem_do_rinst || mem_do_prefetch || mem_do_rdata)) ||
-                        (COMPRESSED_ISA && mem_xfer && (!last_mem_valid ? mem_la_firstword : mem_la_firstword_reg) && !mem_la_secondword && &mem_rdata_latched[1:0]));
+  wire mem_busy = |{ mem_do_prefetch, mem_do_rinst, mem_do_rdata, mem_do_wdata };
+  wire mem_done = resetn &&
+                  ( ( mem_xfer && |mem_state && ( mem_do_rinst || mem_do_rdata || mem_do_wdata) )  ||  (&mem_state && mem_do_rinst)             ) &&
+                  ( !mem_la_firstword                                                              ||  (~&mem_rdata_latched[1:0] && mem_xfer)   );           // 1969.row  true : reset signales --> mem_do_*
+
+  assign mem_la_write = resetn  &&  !mem_state  &&  mem_do_wdata;
+  assign mem_la_read  = resetn  &&
+                        (
+                          ( !mem_la_use_prefetched_high_word && !mem_state &&  (mem_do_rinst || mem_do_prefetch || mem_do_rdata) )  ||
+                          ( COMPRESSED_ISA                   &&  mem_xfer  &&  (!last_mem_valid ? mem_la_firstword : mem_la_firstword_reg)  &&  !mem_la_secondword  &&  &mem_rdata_latched[1:0] )
+                        );
+
   assign mem_la_addr = (mem_do_prefetch || mem_do_rinst) ? {next_pc[31:2] + mem_la_firstword_xfer, 2'b00} : {reg_op1[31:2], 2'b00};
 
   assign mem_rdata_latched_noshuffle = (mem_xfer || LATCHED_MEM_RDATA) ? mem_rdata : mem_rdata_q;
@@ -545,16 +555,17 @@ module picorv32 #(
       if (mem_do_wdata)
         `assert(!(mem_do_prefetch || mem_do_rinst || mem_do_rdata));
 
-      if (mem_state == 2 || mem_state == 3)
+      if (mem_state == MEM_STATE_WRITE || mem_state == MEM_STATE_PREFETCH)
         `assert(mem_valid || mem_do_prefetch);
     end
   end
 
   // 取指令/寫入狀態機
+  // fetch instruction / write  state mechine
   always @(posedge clk) begin
     if (!resetn || trap) begin
       if (!resetn)
-        mem_state <= 0;
+        mem_state <= MEM_STATE_IDEL;
       if (!resetn || mem_ready)
         mem_valid            <= 0;
         mem_la_secondword    <= 0;
@@ -568,20 +579,20 @@ module picorv32 #(
         mem_wdata <= mem_la_wdata;
       end
       case (mem_state)
-        0: begin
+        MEM_STATE_IDEL: begin
           if (mem_do_prefetch || mem_do_rinst || mem_do_rdata) begin
             mem_valid <= !mem_la_use_prefetched_high_word;
             mem_instr <= mem_do_prefetch || mem_do_rinst;
             mem_wstrb <= 0;
-            mem_state <= 1;
+            mem_state <= MEM_STATE_FETCH_OR_READ;
           end
           if (mem_do_wdata) begin
             mem_valid <= 1;
             mem_instr <= 0;
-            mem_state <= 2;
+            mem_state <= MEM_STATE_WRITE;
           end
         end
-        1: begin
+        MEM_STATE_FETCH_OR_READ: begin
           `assert(mem_wstrb == 0);
           `assert(mem_do_prefetch || mem_do_rinst || mem_do_rdata);
           `assert(mem_valid == !mem_la_use_prefetched_high_word);
@@ -603,23 +614,23 @@ module picorv32 #(
                   prefetched_high_word <= 0;
                 end
               end
-              mem_state <= mem_do_rinst || mem_do_rdata ? 0 : 3;
+              mem_state <= mem_do_rinst || mem_do_rdata ? MEM_STATE_IDEL : MEM_STATE_PREFETCH;
             end
           end
         end
-        2: begin
+        MEM_STATE_WRITE: begin
           `assert(mem_wstrb != 0);
           `assert(mem_do_wdata);
           if (mem_xfer) begin
             mem_valid <= 0;
-            mem_state <= 0;
+            mem_state <= MEM_STATE_IDEL;
           end
         end
-        3: begin
+        MEM_STATE_PREFETCH: begin
           `assert(mem_wstrb == 0);
           `assert(mem_do_prefetch);
           if (mem_do_rinst) begin
-            mem_state <= 0;
+            mem_state <= MEM_STATE_IDEL;
           end
         end
       endcase
@@ -638,13 +649,13 @@ module picorv32 #(
   //██║██║ ╚████║███████║   ██║   ██║  ██║╚██████╔╝╚██████╗   ██║   ██║╚██████╔╝██║ ╚████║    ██████╔╝███████╗╚██████╗╚██████╔╝██████╔╝███████╗██║  ██║
   //╚═╝╚═╝  ╚═══╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝  ╚═════╝   ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝    ╚═════╝ ╚══════╝ ╚═════╝ ╚═════╝ ╚═════╝ ╚══════╝╚═╝  ╚═╝
 
-  reg instr_lui, instr_auipc, instr_jal, instr_jalr;
-  reg instr_beq, instr_bne, instr_blt, instr_bge, instr_bltu, instr_bgeu;
-  reg instr_lb, instr_lh, instr_lw, instr_lbu, instr_lhu, instr_sb, instr_sh, instr_sw;
-  reg instr_addi, instr_slti, instr_sltiu, instr_xori, instr_ori, instr_andi, instr_slli, instr_srli, instr_srai;
-  reg instr_add, instr_sub, instr_sll, instr_slt, instr_sltu, instr_xor, instr_srl, instr_sra, instr_or, instr_and;
-  reg instr_rdcycle, instr_rdcycleh, instr_rdinstr, instr_rdinstrh, instr_ecall_ebreak, instr_fence;
-  reg instr_getq, instr_setq, instr_retirq, instr_maskirq, instr_waitirq, instr_timer;
+  reg instr_lui     , instr_auipc    , instr_jal     , instr_jalr;
+  reg instr_beq     , instr_bne      , instr_blt     , instr_bge      , instr_bltu         , instr_bgeu;
+  reg instr_lb      , instr_lh       , instr_lw      , instr_lbu      , instr_lhu          , instr_sb     , instr_sh   , instr_sw;
+  reg instr_addi    , instr_slti     , instr_sltiu   , instr_xori     , instr_ori          , instr_andi   , instr_slli , instr_srli , instr_srai;
+  reg instr_add     , instr_sub      , instr_sll     , instr_slt      , instr_sltu         , instr_xor    , instr_srl  , instr_sra  , instr_or    , instr_and;
+  reg instr_rdcycle , instr_rdcycleh , instr_rdinstr , instr_rdinstrh , instr_ecall_ebreak , instr_fence;
+  reg instr_getq    , instr_setq     , instr_retirq  , instr_maskirq  , instr_waitirq      , instr_timer;
   wire instr_trap;
 
   reg    [ regindex_bits-1: 0]    decoded_rd;
@@ -673,13 +684,13 @@ module picorv32 #(
   reg                             is_alu_reg_reg;
   reg                             is_compare;
 
-  assign instr_trap = (CATCH_ILLINSN || WITH_PCPI) && !{instr_lui, instr_auipc, instr_jal, instr_jalr,
-      instr_beq, instr_bne, instr_blt, instr_bge, instr_bltu, instr_bgeu,
-      instr_lb, instr_lh, instr_lw, instr_lbu, instr_lhu, instr_sb, instr_sh, instr_sw,
-      instr_addi, instr_slti, instr_sltiu, instr_xori, instr_ori, instr_andi, instr_slli, instr_srli, instr_srai,
-      instr_add, instr_sub, instr_sll, instr_slt, instr_sltu, instr_xor, instr_srl, instr_sra, instr_or, instr_and,
-      instr_rdcycle, instr_rdcycleh, instr_rdinstr, instr_rdinstrh, instr_fence,
-      instr_getq, instr_setq, instr_retirq, instr_maskirq, instr_waitirq, instr_timer};
+  assign instr_trap = (CATCH_ILLINSN || WITH_PCPI) && !{instr_lui     , instr_auipc    , instr_jal     , instr_jalr     ,
+                                                        instr_beq     , instr_bne      , instr_blt     , instr_bge      , instr_bltu    , instr_bgeu    ,
+                                                        instr_lb      , instr_lh       , instr_lw      , instr_lbu      , instr_lhu     , instr_sb      , instr_sh   , instr_sw   ,
+                                                        instr_addi    , instr_slti     , instr_sltiu   , instr_xori     , instr_ori     , instr_andi    , instr_slli , instr_srli , instr_srai ,
+                                                        instr_add     , instr_sub      , instr_sll     , instr_slt      , instr_sltu    , instr_xor     , instr_srl  , instr_sra  , instr_or   , instr_and ,
+                                                        instr_rdcycle , instr_rdcycleh , instr_rdinstr , instr_rdinstrh , instr_fence   ,
+                                                        instr_getq    , instr_setq     , instr_retirq  , instr_maskirq  , instr_waitirq , instr_timer};
 
   wire is_rdcycle_rdcycleh_rdinstr_rdinstrh;
   assign is_rdcycle_rdcycleh_rdinstr_rdinstrh = |{instr_rdcycle, instr_rdcycleh, instr_rdinstr, instr_rdinstrh};
@@ -1525,7 +1536,7 @@ module picorv32 #(
 
         if (ENABLE_TRACE && latched_trace) begin
           latched_trace <= 0;
-          trace_valid <= 1;
+          trace_valid   <= 1;
           if (latched_branch)
             trace_data <= (irq_active ? TRACE_IRQ : 0) | TRACE_BRANCH | (current_pc & 32'hfffffffe);
           else
@@ -1557,11 +1568,11 @@ module picorv32 #(
         if (ENABLE_IRQ && (decoder_trigger || do_waitirq) && instr_waitirq) begin
           if (irq_pending) begin
             latched_store <= 1;
-            reg_out      <= irq_pending;
-            reg_next_pc  <= current_pc + (compressed_instr ? 2 : 4);
-            mem_do_rinst <= 1;
+            reg_out       <= irq_pending;
+            reg_next_pc   <= current_pc + (compressed_instr ? 2 : 4);
+            mem_do_rinst  <= 1;
           end else
-            do_waitirq <= 1;
+            do_waitirq    <= 1;
         end else
         if (decoder_trigger) begin
           `debug($display("-- %-0t", $time);)
@@ -1579,7 +1590,7 @@ module picorv32 #(
             latched_branch  <= 1;
           end else begin
             mem_do_rinst    <= 0;
-            mem_do_prefetch <= !instr_jalr && !instr_retirq;
+            mem_do_prefetch <= !instr_jalr && !instr_retirq;   //會在 CPU 閒置(MEM_STAGE_IDEL)、已知下一個 PC、且沒有資料讀寫阻塞 的情況下動作
             cpu_state       <= cpu_state_ld_rs1;
           end
         end
