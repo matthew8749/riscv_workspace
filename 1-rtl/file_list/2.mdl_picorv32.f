@@ -8,5 +8,5 @@
 // *********************/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/****
 $RTL_ROOT/sim_model/mdl_picorv32/picorv32_wrapper_bhv.sv
 $RTL_ROOT/sim_model/mdl_picorv32/axi4_memory_bhv.sv
-//$RTL_ROOT/sim_model/mdl_picorv32/testbench.sv
+$RTL_ROOT/sim_model/mdl_picorv32/testbench.sv
 $RTL_ROOT/sim_model/mdl_picorv32/testbench_ez.sv

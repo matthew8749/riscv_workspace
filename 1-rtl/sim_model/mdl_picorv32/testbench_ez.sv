@@ -7,7 +7,7 @@
 
 `timescale 1 ns / 1 ps
 
-module testbench;
+module testbench_ez;
   reg clk = 1;
   reg resetn = 0;
   wire trap;
@@ -16,11 +16,11 @@ module testbench;
 
   initial begin
     $fsdbDumpfile("testbench_ez.fsdb");
-    $fsdbDumpvars(0, testbench, "+mda");
+    $fsdbDumpvars(0, testbench_ez, "+mda");
     $fsdbDumpMDA();
     repeat (100) @(posedge clk);
     resetn <= 1;
-    repeat (1000) @(posedge clk);
+    repeat (100) @(posedge clk);
     $finish;
   end
 
@@ -60,12 +60,12 @@ module testbench;
   reg [31:0] memory [0:255];
 
   initial begin
-    memory[0] = 32'h 3fc00093; //       li      x1,1020           32'b 0011_1111_1100_ 0000_0 000_ 0000_1 001_0011        =====> addi
-    //memory[1] = 32'h 0000a023; //       sw      x0,0(x1)          32'b 0000_0000_0000_0000_1010_0000_0010_0011
-    //memory[2] = 32'h 0000a103; // loop: lw      x2,0(x1)          32'b 0000_0000_0000_0000_1010_0001_0000_0011
-    //memory[3] = 32'h 00110113; //       addi    x2,x2,1           32'b 0000_0000_0001_0001_0000_0001_0001_0011
-    //memory[4] = 32'h 0020a023; //       sw      x2,0(x1)          32'b 0000_0000_0010_0000_1010_0000_0010_0011
-    //memory[5] = 32'h ff5ff06f; //       j       <loop>            32'b 1111_1111_0101_1111_1111_ 0000_0 110_1111            ======> jal x0, offset
+    memory[0] = 32'h 3fc00093; //       li      x1,1020           32'b 0011_1111_1100_ 0000_0 000_ 0000_1 001_0011        =====> addi rd, rs1, imm ;   addi x1, x0 1020
+    memory[1] = 32'h 0000a023; //       sw      x0,0(x1)          32'b 0000_0000_0000_0000_1010_0000_0010_0011            =====> SW rs2, offset(rs1)
+    memory[2] = 32'h 0000a103; // loop: lw      x2,0(x1)          32'b 0000_0000_0000_0000_1010_0001_0000_0011
+    memory[3] = 32'h 00110113; //       addi    x2,x2,1           32'b 0000_0000_0001_0001_0000_0001_0001_0011
+    memory[4] = 32'h 0020a023; //       sw      x2,0(x1)          32'b 0000_0000_0010_0000_1010_0000_0010_0011
+    memory[5] = 32'h ff5ff06f; //       j       <loop>            32'b 1111_1111_0101_1111_1111_ 0000_0 110_1111            ======> jal x0, offset
   end
 
   always @(posedge clk) begin
