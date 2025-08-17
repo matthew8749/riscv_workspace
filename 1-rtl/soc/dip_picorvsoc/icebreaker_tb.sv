@@ -19,16 +19,23 @@
 
 `timescale 1 ns / 1 ps
 
-module testbench;
+module icebreaker_tb;
 	reg clk;
 	always #5 clk = (clk === 1'b0);
 
 	localparam ser_half_period = 53;
 	event ser_sample;
 
+  initial begin
+    $fsdbDumpfile("icebreaker_tb.fsdb");
+    $fsdbDumpvars(0, icebreaker_tb, "+mda");
+    $fsdbDumpMDA();
+  end
+
 	initial begin
-		$dumpfile("testbench.vcd");
-		$dumpvars(0, testbench);
+		//$dumpfile("icebreaker_tb.vcd");    // iverilog
+		//$dumpvars(0, icebreaker_tb);       // iverilog
+
 
 		repeat (6) begin
 			repeat (50000) @(posedge clk);

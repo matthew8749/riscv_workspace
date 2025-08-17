@@ -43,9 +43,12 @@ SYNTH         := $(synth)
 CFG_PICORV32	:= 1
 
 CFG_PROJ_NAME	:=
-# soc_top, sim_timing_gen_tb, canny_tb, sim_img_processing_top, sim_sync_fifo
-CFG_SIM_PROJ	:= testbench
-CFG_SIM_TOP		:= testbench_ez
+
+# set CFG_SIM_PROJ : soc_top, sim_timing_gen_tb, canny_tb, sim_img_processing_top, sim_sync_fifo, sim_picorv
+CFG_SIM_PROJ	:= sim_picorv
+
+# set CFG_SIM_TOP : icebreaker_tb, spiflash_tb
+CFG_SIM_TOP		:= icebreaker_tb
 CFG_FSDB_FILE	:= $(CFG_SIM_TOP)_tb
 SIM_ARG				:=
 
@@ -139,6 +142,14 @@ CMD_VCS_SYSV_ANA      += -assert svaext -debug_acc+pp
 
 ifdef CFG_PICORV32
 	CMD_VCS_SYSV_ANA    += $(PICORV32_OPT)
+ifeq ($(CFG_SIM_TOP), icebreaker_tb)
+  CMD_VCS_SYSV_ANA    += +define+NO_ICE40_DEFAULT_ASSIGNMENTS +firmware=picorvsoc_iceb_firmware/icebreaker_fw.hex
+  OPT_VCS             += +firmware=picorvsoc_iceb_firmware/icebreaker_fw.hex
+else ifeq ($(CFG_SIM_TOP), spiflash_tb)
+  CMD_VCS_SYSV_ANA    += +firmware=picorvsoc_iceb_firmware/icebreaker_fw.hex
+  OPT_VCS             += +firmware=picorvsoc_iceb_firmware/icebreaker_fw.hex
+endif
+
 endif
 
 CMD_VERDI_VHDL_COM    := $(DIR_VERDI_HOME)/bin/vhdlcom
@@ -183,7 +194,7 @@ sim_r_clr:
 	$(MAKE) sim_vcs_all | tee ./LOG/sim_vcs.log
 
 
-## Simulate RTL with VCS (GUI)
+## Simulate RTL with VCS even do "clr_sim" first
 sim_vcs:  clr_sim
 	$(MAKE) sim_vcs_all | tee ./LOG/sim_vcs.log
 
@@ -200,25 +211,30 @@ ana_vcs:
 	$(CMD_VCS_SYSV_ANA) -work work -file $(DIR_LST_ROOT)/$(LST_IPSH)
 	$(CMD_VCS_VLOG_ANA) -work work -file $(DIR_LST_ROOT)/$(LST_MCRB)
 	$(CMD_VCS_SYSV_ANA) -work work -file $(DIR_LST_ROOT)/$(LST_IPRM)
+
 ifeq ($(CFG_SIM_PROJ), sim_soc)
 	$(CMD_VCS_SYSV_ANA) -work work -file $(DIR_LST_ROOT)/soc_top.f
 	$(CMD_VCS_SYSV_ANA) -work work -file $(DIR_LST_ROOT)/sim_soc.f
 endif
+
 ifeq ($(CFG_SIM_PROJ), canny_tb)
 	$(CMD_VCS_SYSV_ANA) -work work -file $(DIR_LST_ROOT)/mdl_canny.f
 endif
+
 ifeq ($(CFG_SIM_PROJ), sim_sync_fifo)
 	$(CMD_VCS_SYSV_ANA) -work work -file $(DIR_LST_ROOT)/1.dip_sync_fifo.f
 	$(CMD_VCS_SYSV_ANA) -work work -file $(DIR_LST_ROOT)/2.mdl_sync_fifo.f
 endif
+
 ifeq ($(CFG_SIM_PROJ), sim_async_fifo)
 	$(CMD_VCS_SYSV_ANA) -work work -file $(DIR_LST_ROOT)/1.dip_async_fifo.f
 	$(CMD_VCS_SYSV_ANA) -work work -file $(DIR_LST_ROOT)/2.mdl_async_fifo.f
 endif
 
-ifeq ($(CFG_SIM_PROJ), testbench)
-ifeq ($(SYNTH), 1)
+ifeq ($(CFG_SIM_PROJ), sim_picorv)
+ifneq (,$(filter $(CFG_SIM_TOP), icebreaker_tb spiflash_tb))
 	$(CMD_VCS_SYSV_ANA) -work work -file $(DIR_LST_ROOT)/0.share.yosys.vlog.f
+	$(CMD_VCS_SYSV_ANA) -work work -file $(DIR_LST_ROOT)/1.dip_picorvsoc.f
 endif
 	$(CMD_VCS_SYSV_ANA) -work work -file $(DIR_LST_ROOT)/1.dip_picorv32.f
 	$(CMD_VCS_SYSV_ANA) -work work -file $(DIR_LST_ROOT)/2.mdl_picorv32.f
@@ -252,9 +268,9 @@ ifeq ($(CFG_SIM_PROJ), sim_async_fifo)
 	@$(CMD_VERDI_ALIAS) -lib work.verdi -top $(CFG_SIM_TOP) -output    extracted.src_alias
 	@$(CMD_VERDI)       -lib work.verdi -top $(CFG_SIM_TOP) -aliasFile extracted.src_alias  &
 endif
-ifeq ($(CFG_SIM_PROJ), testbench)
+ifeq ($(CFG_SIM_PROJ), sim_picorv)
 	@$(CMD_VERDI_ALIAS) -lib work.verdi -top $(CFG_SIM_TOP) -output    extracted.src_alias
-	@$(CMD_VERDI)       -lib work.verdi -top $(CFG_SIM_TOP) -aliasFile extracted.src_alias  &
+	@$(CMD_VERDI)       -lib work.verdi -top $(CFG_SIM_TOP) -aliasFile extracted.src_alias  -ssf $(CFG_SIM_TOP).fsdb &
 endif
 
 
@@ -279,10 +295,10 @@ ifeq ($(CFG_SIM_PROJ), sim_async_fifo)
 	@$(CMD_VERDI_VLOG_COM) -lib work.verdi -sv -file $(DIR_LST_ROOT)/1.dip_async_fifo.f
 	@$(CMD_VERDI_VLOG_COM) -lib work.verdi -sv -file $(DIR_LST_ROOT)/2.mdl_async_fifo.f
 endif
-ifeq ($(CFG_SIM_PROJ), testbench)
-ifeq ($(CFG_SIM_TOP), )
-ifeq ($(SYNTH), 1)
-	@$(CMD_VERDI_VLOG_COM) -lib work.verdi -sv -file $(DIR_LST_ROOT)/0.share.yosys.vlog.f
+ifeq ($(CFG_SIM_PROJ), sim_picorv)
+ifneq (,$(filter $(CFG_SIM_TOP), icebreaker_tb spiflash_tb))
+	#@$(CMD_VERDI_VLOG_COM) -lib work.verdi -sv -file $(DIR_LST_ROOT)/0.share.yosys.vlog.f  #讀入會有error
+	@$(CMD_VERDI_VLOG_COM) -lib work.verdi -sv -file $(DIR_LST_ROOT)/1.dip_picorvsoc.f
 endif
 	@$(CMD_VERDI_VLOG_COM) -lib work.verdi -sv -file $(DIR_LST_ROOT)/1.dip_picorv32.f
 	@$(CMD_VERDI_VLOG_COM) -lib work.verdi -sv -file $(DIR_LST_ROOT)/2.mdl_picorv32.f
