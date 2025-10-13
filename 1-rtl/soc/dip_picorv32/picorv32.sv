@@ -783,7 +783,7 @@ module picorv32 #(
   reg    [4  : 0 ]                cached_insn_rs2;
   reg    [4  : 0 ]                cached_insn_rd;
 
-  always @(posedge clk) begin
+  always @(posedge clk) begin :dbg_module
     q_ascii_instr <= dbg_ascii_instr;
     q_insn_imm    <= dbg_insn_imm;
     q_insn_opcode <= dbg_insn_opcode;
@@ -863,7 +863,7 @@ module picorv32 #(
   end
 `endif
 
-  always @(posedge clk) begin
+  always @(posedge clk) begin : decoder
     is_lui_auipc_jal                   <= |{instr_lui, instr_auipc, instr_jal};
     is_lui_auipc_jal_jalr_addi_add_sub <= |{instr_lui, instr_auipc, instr_jal, instr_jalr, instr_addi, instr_add, instr_sub};
     is_slti_blt_slt                    <= |{instr_slti, instr_blt, instr_slt};
@@ -1418,7 +1418,7 @@ module picorv32 #(
 
   assign launch_next_insn = cpu_state == cpu_state_fetch && decoder_trigger && (!ENABLE_IRQ || irq_delay || irq_active || !(irq_pending & ~irq_mask));
 
-  always @(posedge clk) begin
+  always @(posedge clk) begin : CPU_state
     trap             <= 0;
     reg_sh           <= 'bx;
     reg_out          <= 'bx;

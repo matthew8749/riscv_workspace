@@ -40,17 +40,17 @@ SYNTH         := $(synth)
 # 	                       |___/
 # ========================================================================================
 # configurations
-CFG_PICORV32	:= 1
+CFG_PICORV32	:= 0
 
 CFG_PROJ_NAME	:=
 
 # set CFG_SIM_PROJ : soc_top, sim_timing_gen_tb, canny_tb, sim_img_processing_top, sim_sync_fifo, sim_picorv
-CFG_SIM_PROJ	:= sim_picorv
+CFG_SIM_PROJ	:= sim_sync_fifo
 
-# set CFG_SIM_TOP : icebreaker_tb, spiflash_tb
-CFG_SIM_TOP		:= icebreaker_tb
+# set CFG_SIM_TOP : icebreaker_tb, spiflash_tb, sim_sync_fifo
+CFG_SIM_TOP		:= sim_sync_fifo
 CFG_FSDB_FILE	:= $(CFG_SIM_TOP)_tb
-SIM_ARG				:=
+SIM_ARG			:=
 
 # ========================================================================================
 # 	 _ _     _
@@ -77,10 +77,10 @@ LST_IPRM													:= 1.dip_sp_ram.f
 # 	 \__,_|_|_|  \___|\___|\__\___/|_|  |_|\___||___/
 # ========================================================================================
 # directories
-DIR_VCS_HOME   										:= /opt/synopsys/vcs/Q-2020.03-SP2-7
-DIR_VERDI_HOME 										:= /opt/synopsys/verdi/R-2020.12-SP1
-DIR_RTL_ROOT	 										:= $(MY_HOME)/project/riscv_workspace/1-rtl
-DIR_LST_ROOT	 										:= $(MY_HOME)/project/riscv_workspace/1-rtl/file_list
+DIR_VCS_HOME   					  := /opt/synopsys/vcs/Q-2020.03-SP2-7
+DIR_VERDI_HOME 					  := /opt/synopsys/verdi/R-2020.12-SP1
+DIR_RTL_ROOT	 				  := $(MY_HOME)/project/riscv_workspace/1-rtl
+DIR_LST_ROOT	 				  := $(MY_HOME)/project/riscv_workspace/1-rtl/file_list
 DIR_SHR_ROOT                      := $(MY_HOME)/project/riscv_workspace/1-rtl/share
 
 export ROOT        								= $(MY_HOME)/project/riscv_workspace
@@ -103,12 +103,12 @@ OPT_VCS         := -full64 -override_timescale=1ns/1ps -top $(CFG_SIM_TOP) +vcs+
 OPT_VCS         += -LDFLAGS -rdynamic
 OPT_VCS         += +lint=TFIPC-L -error=IWNF
 
-OPT_VCS         +=  +verbose +verdi +plusarg_save
+OPT_VCS         +=  +verdi +plusarg_save
 
 
 #add for picorv32
-PICORV32_OPT    := +trace +verbose +noerror +verdi +plusarg_save +define+COMPRESSED_ISA
-#PICORV32_OPT    := +trace +verbose +noerror +verdi +plusarg_save
+#PICORV32_OPT    := +trace +verbose +noerror +verdi +plusarg_save +define+COMPRESSED_ISA
+PICORV32_OPT    := +verbose +noerror +verdi +plusarg_save +define+COMPRESSED_ISA
 
 
 
@@ -133,11 +133,11 @@ CMD_VCS_VHDL_ANA      := $(DIR_VCS_HOME)/bin/vhdlan -full64
 
 CMD_VCS_VLOG_ANA      := $(DIR_VCS_HOME)/bin/vlogan -full64 +v2k
 CMD_VCS_VLOG_ANA      += +define+FSDBDUMP -timescale=1ns/10ps
-CMD_VCS_VLOG_ANA      += -debug_access+all +vcs+lic+wait +lint=PCWM
+CMD_VCS_VLOG_ANA      += -debug_access+all +vcs+lic+wait +lint=PCWM +plusarg_save
 
 CMD_VCS_SYSV_ANA      := $(DIR_VCS_HOME)/bin/vlogan -full64 -sverilog +v2k -sv
 CMD_VCS_SYSV_ANA      += +define+TARGET_SIMULATION  +define+TARGET_VCS
-CMD_VCS_SYSV_ANA      += -assert svaext -debug_acc+pp
+CMD_VCS_SYSV_ANA      += -debug_access+all -assert svaext -debug_acc+pp +plusarg_save
 #add for picorv32
 
 ifdef CFG_PICORV32
@@ -373,6 +373,10 @@ firmware/firmware.hex: firmware/firmware.bin firmware/makehex.py
 firmware/firmware.bin: firmware/firmware.elf
 	$(TOOLCHAIN_PREFIX)objcopy -O binary $< $@
 	chmod -x $@
+
+# picorvsoc_iceb_firmware/icebreaker_fw.bin: picorvsoc_iceb_firmware/icebreaker_fw.elf
+# 	$(TOOLCHAIN_PREFIX)objcopy -O binary $< $@
+# 	chmod -x $@
 
 firmware/firmware.elf: $(FIRMWARE_OBJS) $(TEST_OBJS) firmware/sections.lds
 	$(TOOLCHAIN_PREFIX)gcc -Os -mabi=ilp32 -march=rv32im$(subst C,c,$(COMPRESSED_ISA)) -ffreestanding -nostdlib -o $@ \

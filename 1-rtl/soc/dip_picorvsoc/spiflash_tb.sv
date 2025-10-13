@@ -50,7 +50,7 @@ module spiflash_tb();
   assign flash_io2 = flash_io2_oe ? flash_io2_dout : 1'bz;
   assign flash_io3 = flash_io3_oe ? flash_io3_dout : 1'bz;
 
-  spiflash uut (
+  spiflash u0_spiflash (
     .csb(flash_csb),
     .clk(flash_clk),
     .io0(flash_io0),
@@ -60,8 +60,8 @@ module spiflash_tb();
   );
 
   localparam [23:0] offset = 24'h100000;
-  localparam [31:0] word0 = 32'h 00000093;
-  localparam [31:0] word1 = 32'h 00000193;
+  localparam [31:0] word0  = 32'h 00000093;
+  localparam [31:0] word1  = 32'h 00000193;
 
   reg [7:0] rdata;
   integer errcount = 0;
