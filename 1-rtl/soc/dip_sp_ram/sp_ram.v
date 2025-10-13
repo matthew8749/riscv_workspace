@@ -1,6 +1,6 @@
 // +FHDR--------------------------------------------------------------------------------------------------------- //
 // Project ____________                                                                                           //
-// File name __________ ModuleName.v                                                                              //
+// File name __________ sim_ram_top.sv                                                                              //
 // Creator ____________ Yan, Wei-Ting                                                                             //
 // Built Date _________ MMM-DD-YYYY                                                                               //
 // Function ___________                                                                                           //
@@ -12,47 +12,76 @@
 // -FHDR--------------------------------------------------------------------------------------------------------- //
 //+...........+...................+.............................................................................. //
 //3...........15..................35............................................................................. //
-//`timescale 1ns/10ps
+`timescale 1ns/10ps
+`default_nettype none
 
-module soc_top(
+module sp_ram #(
+  parameter                       ADR_BIT =  6,
+  parameter                       DAT_BIT = 32,
+  parameter                       WEN_BIT =  1
+)(
+  input  wire                    clk,
+  //input  wire                    rst_n,
+  input  wire [WEN_BIT-1: 0]     CEN,  // like rd_en
 
-  input  logic                    ref_clk_i,
-  input  logic                    slow_clk_i,
-  input  logic                    test_clk_i,
+  input  wire [WEN_BIT-1: 0]     WEN,
+  input  wire [DAT_BIT-1: 0]     wr_data,
 
-  input  logic                    rstn_glob_i,
+  input  wire [ADR_BIT-1: 0]     addr,
 
+  output wire [DAT_BIT-1: 0]     rd_data
 );
 
+localparam DEPTH = (1 << ADR_BIT);     // Depth of the FIFO memory
+
 // tag COMPONENTs and SIGNALs declaration --------------------------------------------------------------------------
-  parameter                       ADR_BIT =  6;
-  parameter                       DAT_BIT = 32;
-  parameter                       WEN_BIT =  1;
-
-  logic                           cen;
-  logic                           wen;
-  logic  [ADR_BIT-1:0]            addr;
-  logic  [DAT_BIT-1:0]            din;
-  logic  [DAT_BIT-1:0]            dout;
-
+  reg [DAT_BIT-1:  0]     Q;
+  reg [DAT_BIT-1 : 0]     reg_memory  [0 : DEPTH-1];
 
 // tag OUTs assignment ---------------------------------------------------------------------------------------------
+  assign rd_data                    = reg_memory[addr];
 // tag INs assignment ----------------------------------------------------------------------------------------------
 // tag COMBINATIONAL LOGIC -----------------------------------------------------------------------------------------
 // tag COMBINATIONAL PROCESS ---------------------------------------------------------------------------------------
 // tag SEQUENTIAL LOGIC --------------------------------------------------------------------------------------------
+
 // ***********************/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**
 //                       /**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/***
 // *********************/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/****
+// `ifdef VENDORRAM
+// // instantiation of a vendor's dual-port RAM
+// //vendor_ram mem (
+// //.dout(rdata),
+// //.din(wdata),
+// //.waddr(waddr),
+// //.raddr(raddr),
+// //.wclken(wclken),
+// //.wclken_n(wfull),
+// //.clk(wclk));
+//   RF1SHD_64x32 i_RF1SHD_64x32 (
+//     .CLK ( clk      ),
+//     .CEN ( CEN      ),
+//     .WEN ( WEN      ),
+//     .A   ( addr     ),
+//     .D   ( wr_data   ),
+//     .Q   ( Q        )
+//   );
+//   assign      rd_data            = Q;
 
-sp_ram i_sp_ram_top (
-  .clk    ( ref_clk_i    ),
-  .rst_n  ( rstn_glob_i  ),
-  .CEN    ( cen          ),
-  .WEN    ( wen          ),
-  .addr   ( addr         ),
-  .w_data ( din          ),
-  .r_data ( dout         )
-);
+// `else
+
+  // RTL Verilog memory model
+  always @ (posedge clk ) begin
+    if( (~CEN) && (~WEN) ) begin
+      reg_memory[addr] <= wr_data;
+      $display("[FIFO] Write En: addr = %0d, data = %0d", addr, wr_data);
+    end
+  end
+
+
+// `endif
+
+
+
 
 endmodule

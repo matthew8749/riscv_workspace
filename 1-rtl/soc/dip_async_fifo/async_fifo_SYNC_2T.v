@@ -1,6 +1,6 @@
 // +FHDR--------------------------------------------------------------------------------------------------------- //
 // Project ____________                                                                                           //
-// File name __________ ModuleName.v                                                                              //
+// File name __________ async_fifo_SYNC_2T.sv                                                                     //
 // Creator ____________ Yan, Wei-Ting                                                                             //
 // Built Date _________ MMM-DD-YYYY                                                                               //
 // Function ___________                                                                                           //
@@ -8,35 +8,30 @@
 //   Parent ___________                                                                                           //
 //   Children _________                                                                                           //
 // Revision history ___ Date        Author            Description                                                 //
-//                  ___                                                                                           //
+//                  ___                               1.                                                          //
 // -FHDR--------------------------------------------------------------------------------------------------------- //
 //+...........+...................+.............................................................................. //
 //3...........15..................35............................................................................. //
-//`timescale 1ns/10ps
+`timescale 1ns/10ps
 
-module soc_top(
-
-  input  logic                    ref_clk_i,
-  input  logic                    slow_clk_i,
-  input  logic                    test_clk_i,
-
-  input  logic                    rstn_glob_i,
-
+module async_fifo_SYNC_2T
+#(
+  parameter                         SYNC_VAL_BIT = 32
+)(
+  input  wire                        clk,
+  input  wire                        rst_n,
+  input  wire [SYNC_VAL_BIT-1  : 0]  i_sync_data,
+  output wire [SYNC_VAL_BIT-1  : 0]  o_sync_data
 );
 
 // tag COMPONENTs and SIGNALs declaration --------------------------------------------------------------------------
-  parameter                       ADR_BIT =  6;
-  parameter                       DAT_BIT = 32;
-  parameter                       WEN_BIT =  1;
-
-  logic                           cen;
-  logic                           wen;
-  logic  [ADR_BIT-1:0]            addr;
-  logic  [DAT_BIT-1:0]            din;
-  logic  [DAT_BIT-1:0]            dout;
-
+  reg   [SYNC_VAL_BIT-1 : 0]      sync_data_1t;
+  reg   [SYNC_VAL_BIT-1 : 0]      sync_data_2t;
 
 // tag OUTs assignment ---------------------------------------------------------------------------------------------
+// tag OUTs assignment ---------------------------------------------------------------------------------------------
+  assign  o_sync_data             = sync_data_2t;
+
 // tag INs assignment ----------------------------------------------------------------------------------------------
 // tag COMBINATIONAL LOGIC -----------------------------------------------------------------------------------------
 // tag COMBINATIONAL PROCESS ---------------------------------------------------------------------------------------
@@ -44,15 +39,14 @@ module soc_top(
 // ***********************/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**
 //                       /**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/***
 // *********************/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/****
+always @ (posedge clk or negedge rst_n) begin
+  if ( ~rst_n) begin
+  	{sync_data_2t, sync_data_1t}  <= 'b0;
+  end else begin
+    {sync_data_2t, sync_data_1t}  <= {sync_data_1t, i_sync_data};
 
-sp_ram i_sp_ram_top (
-  .clk    ( ref_clk_i    ),
-  .rst_n  ( rstn_glob_i  ),
-  .CEN    ( cen          ),
-  .WEN    ( wen          ),
-  .addr   ( addr         ),
-  .w_data ( din          ),
-  .r_data ( dout         )
-);
+
+  end
+end
 
 endmodule
