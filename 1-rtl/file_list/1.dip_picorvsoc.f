@@ -9,9 +9,9 @@
 // *********************/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/****
 $RTL_ROOT/soc/dip_picorvsoc/ice40up5k_spram.sv
 $RTL_ROOT/soc/dip_picorvsoc/icebreaker.sv
-$RTL_ROOT/soc/dip_picorvsoc/picosoc.sv
 $RTL_ROOT/soc/dip_picorvsoc/simpleuart.sv
 $RTL_ROOT/soc/dip_picorvsoc/spiflash.sv
 $RTL_ROOT/soc/dip_picorvsoc/spimemio.sv
+$RTL_ROOT/soc/dip_picorvsoc/picosoc.sv
 $RTL_ROOT/soc/dip_picorvsoc/icebreaker_tb.sv
 $RTL_ROOT/soc/dip_picorvsoc/spiflash_tb.sv
