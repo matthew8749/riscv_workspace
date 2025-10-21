@@ -16,6 +16,11 @@
 
 `define SLOW_PERIOD 20
 `define FAST_PERIOD 10
+
+//`define FAST_PERIOD 10
+//`define FAST_PERIOD 10
+
+
 /*
 `define SOC_MEM_MAP_TCDM_START_ADDR          32'h1C01_0000
 `define SOC_MEM_MAP_TCDM_END_ADDR            32'h1C09_0000

@@ -1,6 +1,6 @@
 // +FHDR--------------------------------------------------------------------------------------------------------- //
 // Project ____________                                                                                           //
-// File name __________ ModuleName.v                                                                              //
+// File name __________ rdy_ack_handshake.v                                                                              //
 // Creator ____________ Yan, Wei-Ting                                                                             //
 // Built Date _________ MMM-DD-YYYY                                                                               //
 // Function ___________                                                                                           //
@@ -12,47 +12,49 @@
 // -FHDR--------------------------------------------------------------------------------------------------------- //
 //+...........+...................+.............................................................................. //
 //3...........15..................35............................................................................. //
-//`timescale 1ns/10ps
+`timescale 1ns/10ps
 
-module soc_top(
+module rdy_ack_handshake (
+  input  wire                     rst_n,
+  input  wire                     clk,
 
-  input  logic                    ref_clk_i,
-  input  logic                    slow_clk_i,
-  input  logic                    test_clk_i,
+  input  wire                     wr_rdy,           // 我已準備好接資料
+  output wire                     wr_ack,           // 回復"確認收到資料" (one-cycle pulse)
 
-  input  logic                    rstn_glob_i
-
+  output reg                      rd_rdy,           // 下游準備好收資料
+  input  wire                     rd_ack            // 接收"確認收到資料" (one-cycle pulse)
 );
 
 // tag COMPONENTs and SIGNALs declaration --------------------------------------------------------------------------
-  parameter                       ADR_BIT =  6;
-  parameter                       DAT_BIT = 32;
-  parameter                       WEN_BIT =  1;
-
-  logic                           cen;
-  logic                           wen;
-  logic  [ADR_BIT-1:0]            addr;
-  logic  [DAT_BIT-1:0]            din;
-  logic  [DAT_BIT-1:0]            dout;
-
 
 // tag OUTs assignment ---------------------------------------------------------------------------------------------
+assign  wr_ack = wr_rdy && ((rd_rdy == 1'b0) || (rd_rdy && rd_ack) );
+
 // tag INs assignment ----------------------------------------------------------------------------------------------
+
 // tag COMBINATIONAL LOGIC -----------------------------------------------------------------------------------------
+
 // tag COMBINATIONAL PROCESS ---------------------------------------------------------------------------------------
+
 // tag SEQUENTIAL LOGIC --------------------------------------------------------------------------------------------
 // ***********************/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**
 //                       /**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/***
 // *********************/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/****
 
-sp_ram i_sp_ram_top (
-  .clk    ( ref_clk_i    ),
-  .rst_n  ( rstn_glob_i  ),
-  .CEN    ( cen          ),
-  .WEN    ( wen          ),
-  .addr   ( addr         ),
-  .w_data ( din          ),
-  .r_data ( dout         )
-);
+always @ (posedge clk or negedge rst_n) begin
+  if (!rst_n) begin
+    rd_rdy <= 1'b0;
+  end else begin
+    if (wr_rdy && (rd_rdy == 1'b0) ) begin
+      rd_rdy <= 1'b1;
+    end else if ( (wr_rdy == 1'b0) && rd_rdy && rd_ack ) begin
+      rd_rdy <= 1'b0;
+    end
+
+  end
+end
+
+
+
 
 endmodule

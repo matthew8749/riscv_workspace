@@ -1,6 +1,6 @@
 // +FHDR--------------------------------------------------------------------------------------------------------- //
 // Project ____________                                                                                           //
-// File name __________ sync_fifo.sv                                                                              //
+// File name __________ sync_fifo.v                                                                              //
 // Creator ____________ Yan, Wei-Ting                                                                             //
 // Built Date _________ MMM-DD-YYYY                                                                               //
 // Function ___________                                                                                           //
@@ -14,137 +14,83 @@
 //3...........15..................35............................................................................. //
 `timescale 1ns/10ps
 
-module sync_fifo
-#(
-  parameter                       ADR_BIT =  6,
-  parameter                       DAT_BIT = 32,
-  parameter                       WEN_BIT =  1
+module sync_fifo #(
+  parameter   ADR_BIT    = 8,
+  parameter   DAT_BIT    = 16,
+
+  // DO NOT OVERWRITE THIS PARAMETER (number of bits for the pointer)
+  parameter int unsigned DEPTH = 2**ADR_BIT
 )(
-  input  wire                    clk,
-  input  wire                    rst_n,
+  input  wire                     rst_n,        // Active low reset
+  input  wire                     clk,          // Clock
+  input  wire                     wr_en,        // Write enable
+  input  wire                     rd_en,        // Read enable
+  input  wire [DAT_BIT-1: 0]      data_in,      // Data written into FIFO
+  output reg  [DAT_BIT-1: 0]      data_out,     // Data read from FIFO
+  output wire                     empty,        // FIFO is empty when high
+  output wire                     full,         // FIFO is full when high
 
-  input  wire [WEN_BIT-1: 0]     cs_en,          // higi activ
-  input  wire [WEN_BIT-1: 0]     wr_en,          // higi activ
-  input  wire [DAT_BIT-1: 0]     wr_dat,
+  output reg                      pre_full,
+  output reg                      pre_empty
 
-
-  output wire [DAT_BIT-1: 0]     rd_dat,
-  output wire                    fifo_full,
-  output wire                    fifo_empty,
-  output wire [ADR_BIT : 0]      fifo_count      // for testbench display
 );
 
 // tag COMPONENTs and SIGNALs declaration --------------------------------------------------------------------------
+  reg         [ ADR_BIT   : 0]    wptr;
+  reg         [ ADR_BIT   : 0]    rptr;
+  wire        [ ADR_BIT   : 0]    pre_wptr;
+  wire        [ ADR_BIT   : 0]    pre_rptr;
 
-  //
-  reg     [ADR_BIT     : 0]      wr_ptr;
-  reg     [ADR_BIT     : 0]      rd_ptr;
-
-  // RAM 控制信號
-  reg     [WEN_BIT-1   : 0]      ram_cen;
-  reg     [WEN_BIT-1   : 0]      ram_wen;
-  reg     [ADR_BIT-1   : 0]      ram_addr;
-  reg     [DAT_BIT-1   : 0]      ram_wdata;
-  wire    [DAT_BIT-1   : 0]      ram_rdata;
-
-  // base on cs_en & wr_en
-  wire                           rd_req;
-  wire                           wr_req;
-  wire                           wr_actual;
-  wire                           rd_actual;
+  reg         [ DAT_BIT-1 : 0]    fifo [0 : DEPTH-1];
+  wire        wrap_around;
 
 // tag OUTs assignment ---------------------------------------------------------------------------------------------
-assign rd_dat      = ram_rdata;
+assign wrap_around = wptr[ADR_BIT] ^ rptr[ADR_BIT];
+assign full        =  wrap_around && (wptr[ADR_BIT-1 :0] == rptr[ADR_BIT-1 :0]);
+assign empty       = ~wrap_around && (wptr[ADR_BIT-1 :0] == rptr[ADR_BIT-1 :0]);
 
+
+assign pre_wptr  = wptr + 2'd2;
+assign pre_rptr  = rptr + 2'd2;
 // tag INs assignment ----------------------------------------------------------------------------------------------
-
-
 // tag COMBINATIONAL LOGIC -----------------------------------------------------------------------------------------
-
-//當 cs_en 為高且 wr_en 為高時，表示一個寫入請求。
-//當 cs_en 為高且 wr_en 為低時，表示一個讀取請求。
-//當 cs_en 為低時，表示沒有任何操作請求。
-assign        rd_req              = (cs_en == 1'b1 && wr_en == 1'b0 );
-assign        wr_req              = (cs_en == 1'b1 && wr_en == 1'b1 );
-
-assign        wr_actual           = wr_req && !fifo_full;
-assign        rd_actual           = !wr_actual && rd_req && !fifo_empty;
-
-assign fifo_full   = ( wr_ptr[ADR_BIT] != rd_ptr[ADR_BIT]) && ( wr_ptr[ADR_BIT-1 : 0] == rd_ptr[ADR_BIT-1 : 0] );
-assign fifo_empty  = ( wr_ptr == rd_ptr);
-assign fifo_count  = wr_ptr - rd_ptr;                 // for testbench display
-
 // tag COMBINATIONAL PROCESS ---------------------------------------------------------------------------------------
-always @ (*) begin
-  ram_cen                         = {WEN_BIT{1'b1}};
-  ram_wen                         = {WEN_BIT{1'b1}};
-  ram_addr                        = 'd0;
-  ram_wdata                       = 'd0;
-
-  if ( wr_actual ) begin
-  ram_cen                         = {WEN_BIT{1'b0}};
-  ram_wen                         = {WEN_BIT{1'b0}};
-  ram_addr                        = wr_ptr[ADR_BIT-1:0];
-  ram_wdata                       = wr_dat;
-  end else if ( rd_actual ) begin
-  ram_cen                         = {WEN_BIT{1'b0}};
-  ram_wen                         = {WEN_BIT{1'b1}};
-  ram_addr                        = rd_ptr[ADR_BIT-1:0];
-  end
-
-end
-
 // tag SEQUENTIAL LOGIC --------------------------------------------------------------------------------------------
 // ***********************/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**
 //                       /**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/***
 // *********************/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/****
- sp_ram #(
-  .ADR_BIT ( ADR_BIT       ),
-  .DAT_BIT ( DAT_BIT       ),
-  .WEN_BIT ( WEN_BIT       )
-) u0_sp_ram (
-  .clk      ( clk       ),
-  //.rst_n    ( rst_n     ),
-  .CEN      ( ram_cen   ),  //low activ
-  .WEN      ( ram_wen   ),  //low activ
-  .addr     ( ram_addr  ),
-  .wr_data  ( ram_wdata ),
-  .rd_data  ( ram_rdata )
-);
 
-// ***********************/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**
-// 讀寫指針更新            /**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/***
-// *********************/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/****
-always @ ( posedge clk or negedge rst_n) begin
-  if ( !rst_n ) begin
-    wr_ptr <= {ADR_BIT{1'b0}};
-  end else begin
-    if ( wr_actual ) begin
-      wr_ptr <= wr_ptr + 1'b1;
+always @ (posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+      wptr <= 0;
     end else begin
-      wr_ptr <= wr_ptr;
+      if (wr_en && !full) begin
+        fifo[ wptr[ADR_BIT-1:0] ] <= data_in;
+        wptr       <= wptr + 1;
+      end
     end
+  end
 
+  always @ (posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+      //data_out <= {DAT_BIT{1'b0}};
+      rptr     <= 0;
+    end else begin
+      if (rd_en && !empty) begin
+        data_out <= fifo[ rptr[ADR_BIT-1:0]];
+        rptr     <= rptr + 1;
+      end
+    end
+  end
 
+always @ (posedge clk or negedge rst_n) begin
+  if(!rst_n) begin
+     pre_full  <= 0;
+     pre_empty <= 0;
+  end else begin
+     pre_full  <=  (pre_wptr[ADR_BIT] ^     rptr[ADR_BIT]) && (pre_wptr[ADR_BIT-1 :0] ==     rptr[ADR_BIT-1 :0]);
+     pre_empty <= ~(    wptr[ADR_BIT] ^ pre_rptr[ADR_BIT]) && (    wptr[ADR_BIT-1 :0] == pre_rptr[ADR_BIT-1 :0]);
   end
 end
-
-always @ ( posedge clk or negedge rst_n) begin
-  if ( !rst_n ) begin
-    rd_ptr <= {ADR_BIT{1'b0}};
-  end else begin
-    if ( rd_actual ) begin
-      rd_ptr <= rd_ptr + 1'b1;
-    end else begin
-      rd_ptr <= rd_ptr;
-    end
-
-
-  end
-end
-// ***********************/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**
-//                       /**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/***
-// *********************/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/****
-
 
 endmodule
