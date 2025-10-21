@@ -44,11 +44,11 @@ CFG_PICORV32	:= 0
 
 CFG_PROJ_NAME	:=
 
-# set CFG_SIM_PROJ : soc_top, sim_timing_gen_tb, canny_tb, sim_img_processing_top, sim_sync_fifo, sim_picorv
-CFG_SIM_PROJ	:= sim_sync_fifo
+# set CFG_SIM_PROJ : sim_soc, sim_pulp_axi, soc_top, sim_timing_gen_tb, canny_tb, sim_img_processing_top, sim_sync_fifo, sim_picorv
+CFG_SIM_PROJ	:= sim_pulp_axi
 
-# set CFG_SIM_TOP : icebreaker_tb, spiflash_tb, sim_sync_fifo
-CFG_SIM_TOP		:= sim_sync_fifo
+# set CFG_SIM_TOP : sim_soc, icebreaker_tb, spiflash_tb, sim_sync_fifo
+CFG_SIM_TOP		:= tb_axi_xbar
 CFG_FSDB_FILE	:= $(CFG_SIM_TOP)_tb
 SIM_ARG			:=
 
@@ -83,9 +83,9 @@ DIR_RTL_ROOT	 				  := $(MY_HOME)/project/riscv_workspace/1-rtl
 DIR_LST_ROOT	 				  := $(MY_HOME)/project/riscv_workspace/1-rtl/file_list
 DIR_SHR_ROOT                      := $(MY_HOME)/project/riscv_workspace/1-rtl/share
 
-export ROOT        								= $(MY_HOME)/project/riscv_workspace
-export RTL_ROOT    								= $(DIR_RTL_ROOT)
-export LST_ROOT    								= $(DIR_LST_ROOT)
+export ROOT                       = $(MY_HOME)/project/riscv_workspace
+export RTL_ROOT                   = $(DIR_RTL_ROOT)
+export LST_ROOT                   = $(DIR_LST_ROOT)
 
 #FSDB_MAX_VAR_ELEM := 3000000
 
@@ -103,7 +103,7 @@ OPT_VCS         := -full64 -override_timescale=1ns/1ps -top $(CFG_SIM_TOP) +vcs+
 OPT_VCS         += -LDFLAGS -rdynamic
 OPT_VCS         += +lint=TFIPC-L -error=IWNF
 
-OPT_VCS         +=  +verdi +plusarg_save
+#OPT_VCS         +=  +verdi +plusarg_save
 
 
 #add for picorv32
@@ -135,7 +135,7 @@ CMD_VCS_VLOG_ANA      := $(DIR_VCS_HOME)/bin/vlogan -full64 +v2k
 CMD_VCS_VLOG_ANA      += +define+FSDBDUMP -timescale=1ns/10ps
 CMD_VCS_VLOG_ANA      += -debug_access+all +vcs+lic+wait +lint=PCWM +plusarg_save
 
-CMD_VCS_SYSV_ANA      := $(DIR_VCS_HOME)/bin/vlogan -full64 -sverilog +v2k -sv
+CMD_VCS_SYSV_ANA      := $(DIR_VCS_HOME)/bin/vlogan -full64 -sverilog -sv
 CMD_VCS_SYSV_ANA      += +define+TARGET_SIMULATION  +define+TARGET_VCS
 CMD_VCS_SYSV_ANA      += -debug_access+all -assert svaext -debug_acc+pp +plusarg_save
 #add for picorv32
@@ -217,6 +217,12 @@ ifeq ($(CFG_SIM_PROJ), sim_soc)
 	$(CMD_VCS_SYSV_ANA) -work work -file $(DIR_LST_ROOT)/sim_soc.f
 endif
 
+ifeq ($(CFG_SIM_PROJ), sim_pulp_axi)
+	$(CMD_VCS_SYSV_ANA) -work work -file $(DIR_LST_ROOT)/1.dip_pulp_common_cells.f
+	$(CMD_VCS_SYSV_ANA) -work work -file $(DIR_LST_ROOT)/1.dip_pulp_common_verification.f
+	$(CMD_VCS_SYSV_ANA) -work work -file $(DIR_LST_ROOT)/1.dip_pulp_axi.f
+endif
+
 ifeq ($(CFG_SIM_PROJ), canny_tb)
 	$(CMD_VCS_SYSV_ANA) -work work -file $(DIR_LST_ROOT)/mdl_canny.f
 endif
@@ -253,8 +259,12 @@ verdi: cverdi
 	@echo ".                                                                   ."
 	@echo "*-.,_,.-*'*'*-.,_,.-*-.,_,.-*'*'*-.,_,.-*-.,_,.-*'*'*-.,_,.-*-.,_,.-*"
 ifeq ($(CFG_SIM_PROJ), sim_soc)
-	@$(CMD_VERDI_ALIAS) -lib work.verdi -top sim_soc -output    extracted.src_alias
-	@$(CMD_VERDI)       -lib work.verdi -top sim_soc -aliasFile extracted.src_alias  &
+	@$(CMD_VERDI_ALIAS) -lib work.verdi -top sim_soc_top -output    extracted.src_alias
+	@$(CMD_VERDI)       -lib work.verdi -top sim_soc_top -aliasFile extracted.src_alias  &
+endif
+ifeq ($(CFG_SIM_PROJ), sim_pulp_axi)
+	@$(CMD_VERDI_ALIAS) -lib work.verdi -top $(CFG_SIM_TOP) -output    extracted.src_alias
+	@$(CMD_VERDI)       -lib work.verdi -top $(CFG_SIM_TOP) -aliasFile extracted.src_alias  &
 endif
 ifeq ($(CFG_SIM_PROJ), canny_tb)
 	@$(CMD_VERDI_ALIAS) -lib work.verdi -top canny_tb -output    extracted.src_alias
@@ -283,6 +293,11 @@ cverdi:
 ifeq ($(CFG_SIM_PROJ), sim_soc)
 	@$(CMD_VERDI_VLOG_COM) -lib work.verdi -sv  -file $(DIR_LST_ROOT)/soc_top.f
 	@$(CMD_VERDI_VLOG_COM) -lib work.verdi -sv  -file $(DIR_LST_ROOT)/sim_soc.f
+endif
+ifeq ($(CFG_SIM_PROJ), sim_pulp_axi)
+	@$(CMD_VERDI_VLOG_COM) -lib work.verdi -sv  -file $(DIR_LST_ROOT)/1.dip_pulp_common_cells.f
+	@$(CMD_VERDI_VLOG_COM) -lib work.verdi -sv  -file $(DIR_LST_ROOT)/1.dip_pulp_common_verification.f
+	@$(CMD_VERDI_VLOG_COM) -lib work.verdi -sv  -file $(DIR_LST_ROOT)/1.dip_pulp_axi.f
 endif
 ifeq ($(CFG_SIM_PROJ), canny_tb)
 	@$(CMD_VERDI_VLOG_COM) -lib work.verdi -sv -file $(DIR_LST_ROOT)/mdl_canny.f

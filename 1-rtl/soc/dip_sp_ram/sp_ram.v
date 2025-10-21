@@ -74,7 +74,7 @@ localparam DEPTH = (1 << ADR_BIT);     // Depth of the FIFO memory
   always @ (posedge clk ) begin
     if( (~CEN) && (~WEN) ) begin
       reg_memory[addr] <= wr_data;
-      $display("[FIFO] Write En: addr = %0d, data = %0d", addr, wr_data);
+      //$display("[FIFO] Write En: addr = %0d, data = %0d", addr, wr_data);
     end
   end
 
