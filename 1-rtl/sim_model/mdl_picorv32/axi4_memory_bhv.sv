@@ -40,11 +40,11 @@ module axi4_memory #(
 
   initial begin
     mem_axi_awready = 0;
-    mem_axi_wready = 0;
-    mem_axi_bvalid = 0;
+    mem_axi_wready  = 0;
+    mem_axi_bvalid  = 0;
     mem_axi_arready = 0;
-    mem_axi_rvalid = 0;
-    tests_passed = 0;
+    mem_axi_rvalid  = 0;
+    tests_passed    = 0;
   end
 
   reg [63:0] xorshift64_state = 64'd88172645463325252;

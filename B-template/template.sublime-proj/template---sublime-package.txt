@@ -3,7 +3,7 @@
     [
     {
       "name": "riscv_workspace",
-      "path": "/home/matthew/project/riscv_workspace/",
+      "path": "~/project/riscv_workspace/",
       "file_exclude_patterns":
       [
         //"*.rc",
@@ -37,7 +37,7 @@
     },
     {
       "name": "soc_top",
-      "path": "/home/matthew/project/riscv_workspace/1-rtl/soc/soc_top",
+      "path": "~/project/riscv_workspace/1-rtl/soc/soc_top",
       "file_exclude_patterns":
       [
         //"*.rc",

@@ -6,6 +6,6 @@
 
 
 ### 2025.10.21 
-> 新增 `/home/matthew/project/riscv_workspace/1-rtl/soc/dip_pulp_common_cells` -------> https://github.com/matthew8749/pulp_common_cells.git
-> 新增 `/home/matthew/project/riscv_workspace/1-rtl/soc/dip_pulp_common_verification`  -------> https://github.com/matthew8749/pulp_common_verification.git
-> 新增 `/home/matthew/project/riscv_workspace/1-rtl/soc/dip_pulp_axi` -------> https://github.com/matthew8749/pulp-platform-axi
+> 新增 `~/project/riscv_workspace/1-rtl/soc/dip_pulp_common_cells` -------> https://github.com/matthew8749/pulp_common_cells.git
+> 新增 `~/project/riscv_workspace/1-rtl/soc/dip_pulp_common_verification`  -------> https://github.com/matthew8749/pulp_common_verification.git
+> 新增 `~/project/riscv_workspace/1-rtl/soc/dip_pulp_axi` -------> https://github.com/matthew8749/pulp-platform-axi
