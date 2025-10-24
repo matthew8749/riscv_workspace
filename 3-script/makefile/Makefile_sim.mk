@@ -40,17 +40,35 @@ SYNTH         := $(synth)
 # 	                       |___/
 # ========================================================================================
 # configurations
-CFG_PICORV32	:= 0
 
-CFG_PROJ_NAME	:=
+# CFG set :
+#     $(CFG_SIM_PROJ)             | $(CFG_SIM_TOP)            |   Discribe
+# --------------------------------|---------------------------|-----------------
+# 1.  sim_soc                     | sim_soc_top               |
+# --------------------------------|---------------------------|-----------------
+# 2.  sim_picorv                  | testbench,                |
+#                                 | testbench_ez,             |
+#                                 | icebreaker_tb,            |
+#                                 | spiflash_tb               |
+# --------------------------------|---------------------------|-----------------
+# 3.  sim_pulp_axi                | tb_axi_addr_test          |
+#                                 | tb_axi_fifo               |
+#                                 | tb_axi_lite_xbar          |
+#                                 | tb_axi_xbar               |
+#                                 | tb_axi_to_axi_lite        |
+#                                 | ...... (For more testbenches, see the /test folder)
+# --------------------------------|---------------------------|-----------------
+# 4.  canny_tb                    | canny_tb                  |
+# 5.  sim_sync_fifo               | sim_sync_fifo             |
+# 6.  sim_async_fifo              | sim_async_fifo            |
 
-# set CFG_SIM_PROJ : sim_soc, sim_pulp_axi, soc_top, sim_timing_gen_tb, canny_tb, sim_img_processing_top, sim_sync_fifo, sim_picorv
-CFG_SIM_PROJ	:= sim_pulp_axi
+CFG_SIM_PROJ  := sim_pulp_axi
+CFG_SIM_TOP   := tb_axi_lite_xbar
+CFG_FSDB_FILE := $(CFG_SIM_TOP)_tb
+SIM_ARG       :=
 
-# set CFG_SIM_TOP : sim_soc, icebreaker_tb, spiflash_tb, sim_sync_fifo
-CFG_SIM_TOP		:= tb_axi_xbar
-CFG_FSDB_FILE	:= $(CFG_SIM_TOP)_tb
-SIM_ARG			:=
+CFG_PICORV32  := 0
+CFG_PROJ_NAME :=                                                                        # @@unused
 
 # ========================================================================================
 # 	 _ _     _
@@ -61,13 +79,13 @@ SIM_ARG			:=
 # ========================================================================================
 #list
 
-#LST_SYTM		  											:= 0.system.f
-LST_VHDL													:= 0.system_vhdl.f
-LST_SYSV													:= 0.system_sv.f
-LST_MCRB													:= 0.macro.bhvr.f
-LST_IPSH													:= 0.share.vlog.f
-LST_IPRM													:= 1.dip_sp_ram.f
-#LST_TOP		  											:= 0.top_filelist.f
+#LST_SYTM                         := 0.system.f
+LST_VHDL                          := 0.system_vhdl.f
+LST_SYSV                          := 0.system_sv.f
+LST_MCRB                          := 0.macro.bhvr.f
+LST_IPSH                          := 0.share.vlog.f
+LST_IPRM                          := 1.dip_sp_ram.f
+#LST_TOP                          := 0.top_filelist.f
 
 # ========================================================================================
 # 	     _ _               _             _
@@ -98,22 +116,23 @@ export LST_ROOT                   = $(DIR_LST_ROOT)
 # 	      |_|
 # ========================================================================================
 # options
-OPT_VCS         := -full64 -override_timescale=1ns/1ps -top $(CFG_SIM_TOP) +vcs+lic+wait +notimingchecks +nospecify +vpi \
-							     -P $(DIR_VERDI_HOME)/share/PLI/VCS/LINUX64/verdi.tab $(DIR_VERDI_HOME)/share/PLI/VCS/LINUX64/pli.a -l vcs.log
-OPT_VCS         += -LDFLAGS -rdynamic
-OPT_VCS         += +lint=TFIPC-L -error=IWNF
+OPT_VCS       := -full64 -override_timescale=1ns/1ps -top $(CFG_SIM_TOP) \
+			 		+vcs+lic+wait +notimingchecks +nospecify +vpi \
+				    -P $(DIR_VERDI_HOME)/share/PLI/VCS/LINUX64/verdi.tab $(DIR_VERDI_HOME)/share/PLI/VCS/LINUX64/pli.a -l vcs.log
+OPT_VCS       += -LDFLAGS -rdynamic
+OPT_VCS       += +lint=TFIPC-L -error=IWNF
 
-#OPT_VCS         +=  +verdi +plusarg_save
+#OPT_VCS       +=  +verdi +plusarg_save
 
 
 #add for picorv32
-#PICORV32_OPT    := +trace +verbose +noerror +verdi +plusarg_save +define+COMPRESSED_ISA
-PICORV32_OPT    := +verbose +noerror +verdi +plusarg_save +define+COMPRESSED_ISA
+#PICORV32_OPT  := +trace +verbose +noerror +verdi +plusarg_save +define+COMPRESSED_ISA
+PICORV32_OPT  := +verbose +noerror +verdi +plusarg_save +define+COMPRESSED_ISA
 
 
 
 
-#OPT_VCS         += +plusarg_save +verbose +bootmode=fast_debug_preload +fsdb+max_var_elem=30000000
+#OPT_VCS       += +plusarg_save +verbose +bootmode=fast_debug_preload +fsdb+max_var_elem=30000000
 #+stimuli=./vectors/stim.txt
 #+bootmode=jtag +jtag_openocd
 #fast_debug_preload
@@ -258,26 +277,9 @@ verdi: cverdi
 	@echo ". #SIMTAG#   creating Verdi                                         ."
 	@echo ".                                                                   ."
 	@echo "*-.,_,.-*'*'*-.,_,.-*-.,_,.-*'*'*-.,_,.-*-.,_,.-*'*'*-.,_,.-*-.,_,.-*"
-ifeq ($(CFG_SIM_PROJ), sim_soc)
-	@$(CMD_VERDI_ALIAS) -lib work.verdi -top sim_soc_top -output    extracted.src_alias
-	@$(CMD_VERDI)       -lib work.verdi -top sim_soc_top -aliasFile extracted.src_alias  &
-endif
-ifeq ($(CFG_SIM_PROJ), sim_pulp_axi)
 	@$(CMD_VERDI_ALIAS) -lib work.verdi -top $(CFG_SIM_TOP) -output    extracted.src_alias
 	@$(CMD_VERDI)       -lib work.verdi -top $(CFG_SIM_TOP) -aliasFile extracted.src_alias  &
-endif
-ifeq ($(CFG_SIM_PROJ), canny_tb)
-	@$(CMD_VERDI_ALIAS) -lib work.verdi -top canny_tb -output    extracted.src_alias
-	@$(CMD_VERDI)       -lib work.verdi -top canny_tb -aliasFile extracted.src_alias  &
-endif
-ifeq ($(CFG_SIM_PROJ), sim_sync_fifo)
-	@$(CMD_VERDI_ALIAS) -lib work.verdi -top sim_sync_fifo -output    extracted.src_alias
-	@$(CMD_VERDI)       -lib work.verdi -top sim_sync_fifo -aliasFile extracted.src_alias  &
-endif
-ifeq ($(CFG_SIM_PROJ), sim_async_fifo)
-	@$(CMD_VERDI_ALIAS) -lib work.verdi -top $(CFG_SIM_TOP) -output    extracted.src_alias
-	@$(CMD_VERDI)       -lib work.verdi -top $(CFG_SIM_TOP) -aliasFile extracted.src_alias  &
-endif
+
 ifeq ($(CFG_SIM_PROJ), sim_picorv)
 	@$(CMD_VERDI_ALIAS) -lib work.verdi -top $(CFG_SIM_TOP) -output    extracted.src_alias
 	@$(CMD_VERDI)       -lib work.verdi -top $(CFG_SIM_TOP) -aliasFile extracted.src_alias  -ssf $(CFG_SIM_TOP).fsdb &
