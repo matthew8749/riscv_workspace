@@ -45,10 +45,11 @@ SYNTH         := $(synth)
 #     $(CFG_SIM_PROJ)             | $(CFG_SIM_TOP)            |   Discribe
 # --------------------------------|---------------------------|-----------------
 # 1.  sim_soc                     | sim_soc_top               |
+#                                 | sim_picorv_x_pulp_soc     |
 # --------------------------------|---------------------------|-----------------
-# 2.  sim_picorv                  | testbench,                |
-#                                 | testbench_ez,             |
-#                                 | icebreaker_tb,            |
+# 2.  sim_picorv                  | testbench                 |
+#                                 | testbench_ez              |
+#                                 | icebreaker_tb             |
 #                                 | spiflash_tb               |
 # --------------------------------|---------------------------|-----------------
 # 3.  sim_pulp_axi                | tb_axi_addr_test          |
@@ -62,8 +63,8 @@ SYNTH         := $(synth)
 # 5.  sim_sync_fifo               | sim_sync_fifo             |
 # 6.  sim_async_fifo              | sim_async_fifo            |
 
-CFG_SIM_PROJ  := sim_pulp_axi
-CFG_SIM_TOP   := tb_axi_lite_xbar
+CFG_SIM_PROJ  := sim_soc
+CFG_SIM_TOP   := sim_picorv_x_pulp_soc
 CFG_FSDB_FILE := $(CFG_SIM_TOP)_tb
 SIM_ARG       :=
 
