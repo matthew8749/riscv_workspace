@@ -117,7 +117,7 @@ export LST_ROOT                   = $(DIR_LST_ROOT)
 # 	      |_|
 # ========================================================================================
 # options
-OPT_VCS       := -full64 -override_timescale=1ns/1ps -top $(CFG_SIM_TOP) \
+OPT_VCS       := -full64 -timescale=1ns/1ps -top $(CFG_SIM_TOP) \
 			 		+vcs+lic+wait +notimingchecks +nospecify +vpi \
 				    -P $(DIR_VERDI_HOME)/share/PLI/VCS/LINUX64/verdi.tab $(DIR_VERDI_HOME)/share/PLI/VCS/LINUX64/pli.a -l vcs.log
 OPT_VCS       += -LDFLAGS -rdynamic

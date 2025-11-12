@@ -93,7 +93,7 @@ module axi4_memory #(
 
   task handle_axi_awvalid; begin
     mem_axi_awready <= 1;
-    latched_waddr = mem_axi_awaddr;
+    latched_waddr = {15'b0, mem_axi_awaddr[16: 0]};
     latched_waddr_en = 1;
     fast_waddr <= 1;
   end endtask
@@ -185,7 +185,7 @@ module axi4_memory #(
     end
 
     if (mem_axi_awvalid && mem_axi_awready && !fast_waddr) begin
-      latched_waddr = mem_axi_awaddr;
+      latched_waddr    = {15'b0, mem_axi_awaddr[16: 0]};
       latched_waddr_en = 1;
     end
 

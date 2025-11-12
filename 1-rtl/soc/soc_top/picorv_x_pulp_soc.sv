@@ -31,11 +31,12 @@ module picorv_x_pulp_soc
 // tag COMPONENTs and SIGNALs declaration --------------------------------------------------------------------------
   // Dut parameters
   localparam int unsigned NoMasters         = 32'd2;    // How many Axi Masters there are
-  localparam int unsigned NoSlaves          = 32'd1;    // How many Axi Slaves  there are
+  localparam int unsigned NoSlaves          = 32'd2;    // How many Axi Slaves  there are
   // axi configuration
   localparam int unsigned AxiAddrWidth      =  32'd32;    // Axi Address Width
   localparam int unsigned AxiDataWidth      =  32'd32;    // Axi Data Width
   localparam int unsigned AxiStrbWidth      =  AxiDataWidth / 32'd8;
+
   // in the bench can change this variables which are set here freely
   localparam axi_pkg::xbar_cfg_t xbar_cfg = '{
     NoSlvPorts:         NoMasters,
@@ -46,7 +47,7 @@ module picorv_x_pulp_soc
     LatencyMode:        axi_pkg::CUT_ALL_AX,
     AxiAddrWidth:       AxiAddrWidth,
     AxiDataWidth:       AxiDataWidth,
-    NoAddrRules:        32'd1,
+    NoAddrRules:        NoSlaves,
     default:            '0
   };
   typedef logic [AxiAddrWidth-1:0]      addr_t;
@@ -55,8 +56,8 @@ module picorv_x_pulp_soc
   typedef logic [AxiStrbWidth-1:0]      strb_t;
 
   localparam rule_t [xbar_cfg.NoAddrRules-1:0] AddrMap = '{
-    '{idx: 32'd0, start_addr: 32'h0000_0000, end_addr: 32'h0001_FFFF}
-    //'{idx: 32'd1, start_addr: 32'h0002_0000, end_addr: 32'h0002_FFFF}
+    '{idx: 32'd0, start_addr: 32'h0000_0000, end_addr: 32'h0001_FFFF},
+    '{idx: 32'd1, start_addr: 32'h0010_0000, end_addr: 32'h0011_FFFF}
   };
 
   // -------------------------------
@@ -75,6 +76,7 @@ module picorv_x_pulp_soc
   logic       [ 7: 0]             IMP_ADR_PITCH;
   wire                            imp_done;
   reg                             imp_reg_stsrt_flag;
+  reg                             imp_reg_stsrt_flag_rd;
 
   // picorv32_wrapper part
   wire                            tests_passed;
@@ -129,7 +131,7 @@ module picorv_x_pulp_soc
 axi4_memory #(
   .AXI_TEST (AXI_TEST),
   .VERBOSE  (VERBOSE)
-) pulp_axi4_mem (
+) u0_pulp_axi4_mem (
   .clk                            ( clk               ),
   .mem_axi_awvalid                ( slave[0].aw_valid ),  // i
   .mem_axi_awready                ( slave[0].aw_ready ),  // o
@@ -158,6 +160,68 @@ axi4_memory #(
   assign slave[0].b_resp = 2'b00;
   assign slave[0].r_resp = 2'b00;
 
+// axi4_memory #(
+//   .AXI_TEST (AXI_TEST),
+//   .VERBOSE  (VERBOSE)
+// ) u1_pulp_axi4_mem (
+//   .clk                            ( clk               ),
+//   .mem_axi_awvalid                ( slave[1].aw_valid ),  // i
+//   .mem_axi_awready                ( slave[1].aw_ready ),  // o
+//   .mem_axi_awaddr                 ( slave[1].aw_addr  ),  // i
+//   .mem_axi_awprot                 ( slave[1].aw_prot  ),  // i
+
+//   .mem_axi_wvalid                 ( slave[1].w_valid  ),  // i
+//   .mem_axi_wready                 ( slave[1].w_ready  ),  // o
+//   .mem_axi_wdata                  ( slave[1].w_data   ),  // i
+//   .mem_axi_wstrb                  ( slave[1].w_strb   ),  // i
+
+//   .mem_axi_bvalid                 ( slave[1].b_valid  ),  // o
+//   .mem_axi_bready                 ( slave[1].b_ready  ),  // i
+//   //                                slave[1].b_resp       // o   //assign
+//   .mem_axi_arvalid                ( slave[1].ar_valid ),  // i
+//   .mem_axi_arready                ( slave[1].ar_ready ),  // o
+//   .mem_axi_araddr                 ( slave[1].ar_addr  ),  // i
+//   .mem_axi_arprot                 ( slave[1].ar_prot  ),  // i
+
+//   .mem_axi_rvalid                 ( slave[1].r_valid  ),  // o
+//   .mem_axi_rready                 ( slave[1].r_ready  ),  // i
+//   .mem_axi_rdata                  ( slave[1].r_data   ),  // o
+//   //                                slave[1].r_resp       // o   //assign
+//   .tests_passed                   ( /*UC*/            )   // o
+// );
+//   assign slave[1].b_resp = 2'b00;
+//   assign slave[1].r_resp = 2'b00;
+
+
+axi_lite_memory i_axi_lite_memory (
+  .rst_n     (rst_n     ),
+  .clk       (clk       ),
+  .s_aw_valid(slave[1].aw_valid),
+  .s_aw_ready(slave[1].aw_ready),
+  .s_aw_addr (slave[1].aw_addr ),
+  .s_aw_prot (slave[1].aw_prot ),
+
+  .s_w_valid (slave[1].w_valid ),
+  .s_w_ready (slave[1].w_ready ),
+  .s_w_data  (slave[1].w_data  ),
+  .s_w_strb  (slave[1].w_strb  ),
+
+  .s_b_resp  (slave[1].b_resp  ),
+  .s_b_valid (slave[1].b_valid ),
+  .s_b_ready (slave[1].b_ready ),
+
+  .s_ar_addr (slave[1].ar_addr ),
+  .s_ar_valid(slave[1].ar_valid),
+  .s_ar_ready(slave[1].ar_ready),
+
+  .s_r_data   (slave[1].r_data   ),
+  .s_r_resp   (slave[1].r_resp   ),
+  .s_r_valid  (slave[1].r_valid  ),
+  .s_r_ready  (slave[1].r_ready  )
+);
+
+
+
 axi_lite_xbar_intf #(
   .Cfg                            ( xbar_cfg ),
   .rule_t                         ( rule_t   )
@@ -181,19 +245,9 @@ axi_lite_xbar_intf #(
   assign IMP_ADR_PITCH            = 9'd16;
   assign imp_start                = imp_reg_stsrt_flag;
 
-mst_imp i_mst_imp (
+mst_imp_r_ch i_mst_imp_r_ch (
   .rst_n                          ( rst_n               ),
   .clk                            ( clk                 ),
-  .mem_axi_awvalid                ( master[1].aw_valid  ),
-  .mem_axi_awready                ( master[1].aw_ready  ),
-  .mem_axi_awaddr                 ( master[1].aw_addr   ),
-  .mem_axi_awprot                 ( master[1].aw_prot   ),
-  .mem_axi_wvalid                 ( master[1].w_valid   ),
-  .mem_axi_wready                 ( master[1].w_ready   ),
-  .mem_axi_wdata                  ( master[1].w_data    ),
-  .mem_axi_wstrb                  ( master[1].w_strb    ),
-  .mem_axi_bvalid                 ( master[1].b_valid   ),
-  .mem_axi_bready                 ( master[1].b_ready   ),
   .mem_axi_arvalid                ( master[1].ar_valid  ),
   .mem_axi_arready                ( master[1].ar_ready  ),
   .mem_axi_araddr                 ( master[1].ar_addr   ),
@@ -205,12 +259,37 @@ mst_imp i_mst_imp (
   .IMP_COOR_MINX                  ( 8'd0                ),
   .IMP_VSIZE                      ( 8'd6                ),
   .IMP_COOR_MINY                  ( 8'd0                ),
-  .IMP_ST                         ( imp_start           ),
-  .IMP_SRC_BADDR                  ( IMP_SRC_BADDR       ),
-  .IMP_DST_BADDR                  ( IMP_DST_BADDR       ),
-  .IMP_ADR_PITCH                  ( IMP_ADR_PITCH       ),
-  .imp_done                       ( imp_done            )
+  .IMP_ST                         ( imp_reg_stsrt_flag_rd           ),
+  .IMP_SRC_BADDR                  ( 32'h0010_0000       ),
+  .IMP_ADR_PITCH                  ( IMP_ADR_PITCH       )
 );
+
+mst_imp_w_ch i_mst_imp_w_ch (
+  .rst_n                          ( rst_n               ),
+  .clk                            ( clk                 ),
+  .mem_axi_awvalid                ( master[1].aw_valid  ),
+  .mem_axi_awready                ( master[1].aw_ready  ),
+  .mem_axi_awaddr                 ( master[1].aw_addr   ),
+  .mem_axi_awprot                 ( master[1].aw_prot   ),
+  .mem_axi_wvalid                 ( master[1].w_valid   ),
+  .mem_axi_wready                 ( master[1].w_ready   ),
+  .mem_axi_wdata                  ( master[1].w_data    ),
+  .mem_axi_wstrb                  ( master[1].w_strb    ),
+  .mem_axi_bresp                  ( master[1].b_resp    ),
+  .mem_axi_bvalid                 ( master[1].b_valid   ),
+  .mem_axi_bready                 ( master[1].b_ready   ),
+  .IMP_HSIZE                      ( 8'd4                ),
+  .IMP_COOR_MINX                  ( 8'd0                ),
+  .IMP_VSIZE                      ( 8'd6                ),
+  .IMP_COOR_MINY                  ( 8'd0                ),
+  .IMP_ST                         ( imp_start           ),
+  .IMP_DST_BADDR                  ( 32'h0010_0000       ),
+  .IMP_ADR_PITCH                  ( IMP_ADR_PITCH       )
+);
+
+
+
+
 
 
 // tag COMBINATIONAL PROCESS ---------------------------------------------------------------------------------------
@@ -236,7 +315,7 @@ always @* begin
   initial begin
     if (!$value$plusargs("firmware=%s", firmware_file))
       firmware_file = "/home/matthew/project/riscv_workspace/2-sim/sim_picorv32/firmware/firmware.hex";
-    $readmemh(firmware_file, pulp_axi4_mem.memory);
+    $readmemh(firmware_file, u0_pulp_axi4_mem.memory);
     $fsdbDumpMDA;
   end
 
@@ -254,20 +333,27 @@ always @* begin
       end else begin
         $display("ERROR!");
         if ($test$plusargs("noerror"))
-          imp_reg_stsrt_flag <= 1'b1;
-          //$finish;
-        //$stop;
+          //imp_reg_stsrt_flag <= 1'b1;
+          $finish;
+        $stop;
       end
     end
   end
 
 
 initial begin
-  imp_reg_stsrt_flag = 1'b0;
-  if (imp_done)begin
-    #100
-    $finish;
-  end
+  imp_reg_stsrt_flag    <= 1'b0;
+  imp_reg_stsrt_flag_rd <= 1'b0;
+
+  #83400
+  imp_reg_stsrt_flag <= 1'b1;
+
+  #10000
+  imp_reg_stsrt_flag_rd <= 1'b1;
+  // if (imp_done)begin
+  //   #10000000
+  //   $finish;
+  // end
 end
 
 endmodule
