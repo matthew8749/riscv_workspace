@@ -18,11 +18,11 @@ module rdy_ack_handshake (
   input  wire                     rst_n,
   input  wire                     clk,
 
-  input  wire                     wr_rdy,           // 我已準備好接資料
-  output wire                     wr_ack,           // 回復"確認收到資料" (one-cycle pulse)
+  input  wire                     wr_rdy,           //
+  output wire                     wr_ack,           //
 
-  output reg                      rd_rdy,           // 下游準備好收資料
-  input  wire                     rd_ack            // 接收"確認收到資料" (one-cycle pulse)
+  output reg                      rd_rdy,           //
+  input  wire                     rd_ack            //
 );
 
 // tag COMPONENTs and SIGNALs declaration --------------------------------------------------------------------------
