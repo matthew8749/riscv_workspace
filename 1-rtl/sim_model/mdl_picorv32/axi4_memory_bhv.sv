@@ -33,7 +33,7 @@ module axi4_memory #(
   //reg [31:0]   memory [0:128*1024/4-1] /* verilator public */;
   reg [31:0]   memory [0:32767] /* verilator public */;
   reg verbose;
-  initial verbose = $test$plusargs("verbose") || VERBOSE;
+  //initial verbose = $test$plusargs("verbose") || VERBOSE;
 
   reg axi_test;
   initial axi_test = $test$plusargs("axi_test") || AXI_TEST;
@@ -93,7 +93,8 @@ module axi4_memory #(
 
   task handle_axi_awvalid; begin
     mem_axi_awready <= 1;
-    latched_waddr = {15'b0, mem_axi_awaddr[16: 0]};
+    //latched_waddr = {15'b0, mem_axi_awaddr[16: 0]};
+    latched_waddr = mem_axi_awaddr;
     latched_waddr_en = 1;
     fast_waddr <= 1;
   end endtask
@@ -185,7 +186,8 @@ module axi4_memory #(
     end
 
     if (mem_axi_awvalid && mem_axi_awready && !fast_waddr) begin
-      latched_waddr    = {15'b0, mem_axi_awaddr[16: 0]};
+      //latched_waddr    = {15'b0, mem_axi_awaddr[16: 0]};
+      latched_waddr    = mem_axi_awaddr;
       latched_waddr_en = 1;
     end
 

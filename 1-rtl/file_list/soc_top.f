@@ -19,6 +19,9 @@ $RTL_ROOT/macro/bhvr/ram/Xilinx_SRAM1R1W_32X32768/Xilinx_SRAM1R1W_32X32768.v
 // ***********************/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**
 // pulp_common_cells     /**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/***
 // *********************/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/****
++incdir+$RTL_ROOT/soc
++incdir+$RTL_ROOT/soc/soc_top
++incdir+$RTL_ROOT/soc/soc_top/include
 +incdir+$RTL_ROOT/soc/dip_pulp_common_cells
 +incdir+$RTL_ROOT/soc/dip_pulp_common_cells/include
 +incdir+$RTL_ROOT/soc/dip_pulp_common_cells/include/common_cells
@@ -181,6 +184,7 @@ $RTL_ROOT/soc/dip_pulp_axi/src/axi_lite_lfsr.sv
 $RTL_ROOT/soc/dip_pulp_axi/src/axi_lite_mailbox.sv
 $RTL_ROOT/soc/dip_pulp_axi/src/axi_lite_mux.sv
 $RTL_ROOT/soc/dip_pulp_axi/src/axi_lite_regs.sv
+$RTL_ROOT/soc/dip_pulp_axi/src/axi_lite_regfile.sv
 $RTL_ROOT/soc/dip_pulp_axi/src/axi_lite_to_apb.sv
 $RTL_ROOT/soc/dip_pulp_axi/src/axi_lite_to_axi.sv
 $RTL_ROOT/soc/dip_pulp_axi/src/axi_modify_address.sv
@@ -256,9 +260,12 @@ $RTL_ROOT/soc/dip_rdy_ack/alu_cop.v
 // *********************/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/****
 +incdir+$RTL_ROOT/share
 +incdir+$RTL_ROOT/soc/soc_top/rtl
-+incdir+$RTL_ROOT/soc/soc_top/rtl/include
++incdir+$RTL_ROOT/soc/soc_top/include
++incdir+$RTL_ROOT/soc/soc_top/rtl/pulp_include
+
 
 $RTL_ROOT/share/tb_clk_gen.v
+$RTL_ROOT/soc/soc_top/print.sv
 $RTL_ROOT/soc/soc_top/mst_imp_r_ch.sv
 $RTL_ROOT/soc/soc_top/mst_imp_w_ch.sv
 $RTL_ROOT/soc/soc_top/axi_lite_memory.sv

@@ -42,7 +42,7 @@ module mst_imp_w_ch (
   input  wire                     IMP_ST,                                 // Stawt bit，1T stawt pulse
 
   input  wire [31: 0]             IMP_DST_BADDR,                          // destination base (32b)
-  input  wire [ 8: 0]             IMP_ADR_PITCH                           // bytes per row
+  input  wire [31: 0]             IMP_ADR_PITCH                           // bytes per row
 
 
 );

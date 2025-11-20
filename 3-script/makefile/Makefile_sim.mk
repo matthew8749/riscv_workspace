@@ -365,14 +365,14 @@ clean: clr_vcs clr_verdi clr_fw
 # ██╔══╝  ██║██╔══██╗██║╚██╔╝██║██║███╗██║██╔══██║██╔══██╗██╔══╝
 # ██║     ██║██║  ██║██║ ╚═╝ ██║╚███╔███╔╝██║  ██║██║  ██║███████╗
 # ╚═╝     ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝ ╚══╝╚══╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝
-
-PYTHON 																= python3
-COMPRESSED_ISA 												= C
+# reference : YosysHQ---picorv32 Makefile
+PYTHON 									= python3
+COMPRESSED_ISA 							= C
 RISCV_GNU_TOOLCHAIN_INSTALL_PREFIX 		= /opt/riscv
-TOOLCHAIN_PREFIX 											= $(RISCV_GNU_TOOLCHAIN_INSTALL_PREFIX)/bin/riscv32-unknown-elf-
+TOOLCHAIN_PREFIX 						= $(RISCV_GNU_TOOLCHAIN_INSTALL_PREFIX)/bin/riscv32-unknown-elf-
 
 TEST_OBJS 		= $(addsuffix .o,$(basename $(wildcard tests/*.S)))
-FIRMWARE_OBJS = firmware/start.o firmware/irq.o firmware/print.o firmware/hello.o firmware/sieve.o firmware/multest.o firmware/stats.o
+FIRMWARE_OBJS   = firmware/start.o firmware/irq.o firmware/print.o firmware/hello.o firmware/sieve.o firmware/multest.o firmware/stats.o
 
 GCC_WARNS  		= -Werror -Wall -Wextra -Wshadow -Wundef -Wpointer-arith -Wcast-qual -Wcast-align -Wwrite-strings
 GCC_WARNS 		+= -Wredundant-decls -Wstrict-prototypes -Wmissing-prototypes -pedantic # -Wconversion
@@ -382,7 +382,7 @@ gen_trace: showtrace.py
 	$(PYTHON) showtrace.py testbench.trace firmware/firmware.elf | tee ./LOG/showtrace.log
 
 ## generate picorv32 firmware
-gen_fw:
+gen_fw: clr_fw
 	$(MAKE) firmware/firmware.hex | tee ./LOG/gen_fw.log
 
 firmware/firmware.hex: firmware/firmware.bin firmware/makehex.py
@@ -417,6 +417,7 @@ tests/%.o: tests/%.S tests/riscv_test.h tests/test_macros.h
 clr_fw:
 	rm -vrf $(FIRMWARE_OBJS) $(TEST_OBJS)  \
 		firmware/firmware.elf firmware/firmware.bin firmware/firmware.hex firmware/firmware.map \
+		firmware/*.o \
 		estbench.trace \
 		testbench_verilator testbench_verilator_dir \
 		LOG/showtrace.log
