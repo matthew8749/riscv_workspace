@@ -13,13 +13,13 @@ LENGTH = 96KB (0x18000) 指的是分配給程式的部分。
 留下來的 32KB（128KB - 96KB）是給 stack 用的，可能在其他段落或用程式碼動態配置。
 0x18000 = 98,304(bytes)
 98,304 ÷ 1024 = 96 KB
+    RAM   (rwx) : ORIGIN = 0x00100000, LENGTH = 0x0011FFFF
 */
 
 MEMORY {
 	/* the memory in the testbench is 128k in size;
 	 * set LENGTH=96k and leave at least 32k for stack */
 	mem         : ORIGIN = 0x00000000, LENGTH = 0x00018000
-    RAM   (rwx) : ORIGIN = 0x00100000, LENGTH = 0x0011FFFF
 }
 
 SECTIONS {
