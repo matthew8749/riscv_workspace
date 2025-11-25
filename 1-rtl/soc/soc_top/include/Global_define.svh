@@ -37,6 +37,10 @@
 `define SOC_MEM_MAP_AXI_REGF0_ID             32'd2
 `define SOC_MEM_MAP_AXI_REGF0_START_ADDR     32'h0012_0000
 `define SOC_MEM_MAP_AXI_REGF0_END_ADDR       32'h0012_FFFF
+// u0_axi_lite_to_apb_intf
+`define SOC_MEM_MAP_AXI_APB_ID               32'd3
+`define SOC_MEM_MAP_AXI_APB_START_ADDR       32'h0013_0000
+`define SOC_MEM_MAP_AXI_APB_END_ADDR         32'h0013_FFFF
 
 //================================================================
 //  AXI LITE REGFILE define

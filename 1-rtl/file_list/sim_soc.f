@@ -37,6 +37,20 @@ $RTL_ROOT/soc/dip_pulp_common_cells/test/lossy_valid_to_stream_tb.sv
 $RTL_ROOT/soc/dip_pulp_common_verification/test/tb_clk_rst_gen.sv
 
 // ***********************/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**
+// dip_pulp_apb  TEST    /**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/***
+// *********************/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/****
++incdir+$RTL_ROOT/soc/dip_pulp_common_cells/include
++incdir+$RTL_ROOT/soc/dip_pulp_apb/include
++incdir+$RTL_ROOT/soc/dip_pulp_apb/include/apb
+//- target: test                  // files:
+$RTL_ROOT/soc/dip_pulp_apb/test/tb_apb_regs.sv
+$RTL_ROOT/soc/dip_pulp_apb/test/tb_apb_cdc.sv
+$RTL_ROOT/soc/dip_pulp_apb/test/tb_apb_demux.sv
+//- target: synth_test            // files:
+//# Level 0
+$RTL_ROOT/soc/dip_pulp_apb/test/synth_bench.sv
+
+// ***********************/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**
 // pulp_axi_test         /**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/***
 // *********************/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/****
 +incdir+$RTL_ROOT/soc/dip_pulp_axi

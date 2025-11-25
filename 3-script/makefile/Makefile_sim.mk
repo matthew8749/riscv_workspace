@@ -59,9 +59,14 @@ SYNTH         := $(synth)
 #                                 | tb_axi_to_axi_lite        |
 #                                 | ...... (For more testbenches, see the /test folder)
 # --------------------------------|---------------------------|-----------------
-# 4.  canny_tb                    | canny_tb                  |
-# 5.  sim_sync_fifo               | sim_sync_fifo             |
-# 6.  sim_async_fifo              | sim_async_fifo            |
+# 4.  sim_pulp_apb                | tb_apb_regs               |
+#                                 | tb_apb_cdc                |
+#                                 | tb_apb_demux              |
+#                                 | synth_bench               |
+# --------------------------------|---------------------------|-----------------
+# 5.  canny_tb                    | canny_tb                  |
+# 6.  sim_sync_fifo               | sim_sync_fifo             |
+# 7.  sim_async_fifo              | sim_async_fifo            |
 
 CFG_SIM_PROJ  := sim_soc
 CFG_SIM_TOP   := sim_picorv_x_pulp_soc
@@ -237,6 +242,12 @@ ifeq ($(CFG_SIM_PROJ), sim_soc)
 	$(CMD_VCS_SYSV_ANA) -work work -file $(DIR_LST_ROOT)/sim_soc.f
 endif
 
+ifeq ($(CFG_SIM_PROJ), sim_pulp_apb)
+	$(CMD_VCS_SYSV_ANA) -work work -file $(DIR_LST_ROOT)/1.dip_pulp_common_cells.f
+	$(CMD_VCS_SYSV_ANA) -work work -file $(DIR_LST_ROOT)/1.dip_pulp_common_verification.f
+	$(CMD_VCS_SYSV_ANA) -work work -file $(DIR_LST_ROOT)/1.dip_pulp_apb.f
+endif
+
 ifeq ($(CFG_SIM_PROJ), sim_pulp_axi)
 	$(CMD_VCS_SYSV_ANA) -work work -file $(DIR_LST_ROOT)/1.dip_pulp_common_cells.f
 	$(CMD_VCS_SYSV_ANA) -work work -file $(DIR_LST_ROOT)/1.dip_pulp_common_verification.f
@@ -297,9 +308,16 @@ ifeq ($(CFG_SIM_PROJ), sim_soc)
 	@$(CMD_VERDI_VLOG_COM) -lib work.verdi -sv  -file $(DIR_LST_ROOT)/soc_top.f
 	@$(CMD_VERDI_VLOG_COM) -lib work.verdi -sv  -file $(DIR_LST_ROOT)/sim_soc.f
 endif
+ifeq ($(CFG_SIM_PROJ), sim_pulp_apb)
+	@$(CMD_VERDI_VLOG_COM) -lib work.verdi -sv  -file $(DIR_LST_ROOT)/1.dip_pulp_common_cells.f
+	@$(CMD_VERDI_VLOG_COM) -lib work.verdi -sv  -file $(DIR_LST_ROOT)/1.dip_pulp_common_verification.f
+	@$(CMD_VERDI_VLOG_COM) -lib work.verdi -sv  -file $(DIR_LST_ROOT)/1.dip_pulp_common_cells_tb.f
+	@$(CMD_VERDI_VLOG_COM) -lib work.verdi -sv  -file $(DIR_LST_ROOT)/1.dip_pulp_apb.f
+endif
 ifeq ($(CFG_SIM_PROJ), sim_pulp_axi)
 	@$(CMD_VERDI_VLOG_COM) -lib work.verdi -sv  -file $(DIR_LST_ROOT)/1.dip_pulp_common_cells.f
 	@$(CMD_VERDI_VLOG_COM) -lib work.verdi -sv  -file $(DIR_LST_ROOT)/1.dip_pulp_common_verification.f
+	@$(CMD_VERDI_VLOG_COM) -lib work.verdi -sv  -file $(DIR_LST_ROOT)/1.dip_pulp_common_cells_tb
 	@$(CMD_VERDI_VLOG_COM) -lib work.verdi -sv  -file $(DIR_LST_ROOT)/1.dip_pulp_axi.f
 endif
 ifeq ($(CFG_SIM_PROJ), canny_tb)
@@ -372,7 +390,7 @@ RISCV_GNU_TOOLCHAIN_INSTALL_PREFIX 		= /opt/riscv
 TOOLCHAIN_PREFIX 						= $(RISCV_GNU_TOOLCHAIN_INSTALL_PREFIX)/bin/riscv32-unknown-elf-
 
 TEST_OBJS 		= $(addsuffix .o,$(basename $(wildcard tests/*.S)))
-FIRMWARE_OBJS   = firmware/start.o firmware/irq.o firmware/print.o firmware/hello.o firmware/sieve.o firmware/multest.o firmware/stats.o
+FIRMWARE_OBJS   = firmware/start.o firmware/irq.o firmware/print.o firmware/main.o firmware/sieve.o firmware/multest.o firmware/stats.o
 
 GCC_WARNS  		= -Werror -Wall -Wextra -Wshadow -Wundef -Wpointer-arith -Wcast-qual -Wcast-align -Wwrite-strings
 GCC_WARNS 		+= -Wredundant-decls -Wstrict-prototypes -Wmissing-prototypes -pedantic # -Wconversion

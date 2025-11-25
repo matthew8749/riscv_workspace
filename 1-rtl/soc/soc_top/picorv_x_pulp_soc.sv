@@ -37,8 +37,8 @@ module picorv_x_pulp_soc
   //   \__,_/_/\_\_| |_|_|\__\___| /_/\_\_.__/ \__,_|_|
   // Dut parameters
   localparam int unsigned NoMasters         = 32'd2;    // How many Axi Masters there are
-  localparam int unsigned NoSlaves          = 32'd3;    // How many Axi Slaves  there are
-  // axi configuration
+  localparam int unsigned NoSlaves          = 32'd4;    // How many Axi Slaves  there are
+  // axi configurationS
   localparam int unsigned AxiAddrWidth      =  32'd32;    // Axi Address Width
   localparam int unsigned AxiDataWidth      =  32'd32;    // Axi Data Width
   localparam int unsigned AxiStrbWidth      =  AxiDataWidth / 32'd8;
@@ -62,9 +62,10 @@ module picorv_x_pulp_soc
   typedef logic [AxiStrbWidth-1:0]      strb_t;
 
   localparam rule_t [xbar_cfg.NoAddrRules-1:0] AddrMap = '{
-    '{idx: `SOC_MEM_MAP_AXI_RAM0_ID,  start_addr: `SOC_MEM_MAP_AXI_RAM0_START_ADDR,  end_addr: `SOC_MEM_MAP_AXI_RAM0_END_ADDR  },  /* RAM0  */
-    '{idx: `SOC_MEM_MAP_AXI_RAM1_ID,  start_addr: `SOC_MEM_MAP_AXI_RAM1_START_ADDR,  end_addr: `SOC_MEM_MAP_AXI_RAM1_END_ADDR  },  /* RAM1  */
-    '{idx: `SOC_MEM_MAP_AXI_REGF0_ID, start_addr: `SOC_MEM_MAP_AXI_REGF0_START_ADDR, end_addr: `SOC_MEM_MAP_AXI_REGF0_END_ADDR }   /* REGF0 */
+    '{idx: `SOC_MEM_MAP_AXI_RAM0_ID,  start_addr: `SOC_MEM_MAP_AXI_RAM0_START_ADDR,  end_addr: `SOC_MEM_MAP_AXI_RAM0_END_ADDR  },  /* RAM0  : 32'h0000_0000 ~ 32'h0001_FFFF */
+    '{idx: `SOC_MEM_MAP_AXI_RAM1_ID,  start_addr: `SOC_MEM_MAP_AXI_RAM1_START_ADDR,  end_addr: `SOC_MEM_MAP_AXI_RAM1_END_ADDR  },  /* RAM1  : 32'h0010_0000 ~ 32'h0011_FFFF */
+    '{idx: `SOC_MEM_MAP_AXI_REGF0_ID, start_addr: `SOC_MEM_MAP_AXI_REGF0_START_ADDR, end_addr: `SOC_MEM_MAP_AXI_REGF0_END_ADDR },  /* REGF0 : 32'h0012_0000 ~ 32'h0012_FFFF */
+    '{idx: `SOC_MEM_MAP_AXI_APB_ID,   start_addr: `SOC_MEM_MAP_AXI_APB_START_ADDR,   end_addr: `SOC_MEM_MAP_AXI_APB_END_ADDR   }   /* APB   : 32'h0013_0000 ~ 32'h0013_FFFF */
   };
 
   //              _   _ _ _
@@ -74,7 +75,7 @@ module picorv_x_pulp_soc
   //   \__,_/_/\_\_| |_|_|\__\___| |_|  \___|\__, |
   //                                         |___/
   /// Define the parameter `RegNumBytes` of the DUT.
-  parameter int unsigned              TbRegNumBytes  = 32'd200;
+  parameter int unsigned              TbRegNumBytes  = 32'd100;
   /// Define the parameter `AxiReadOnly` of the DUT.
   parameter logic [TbRegNumBytes-1:0] TbAxiReadOnly  = {{TbRegNumBytes-18{1'b0}}, 18'b0};
   /// Define the parameter `PrivProtOnly` of the DUT.
@@ -91,7 +92,8 @@ module picorv_x_pulp_soc
   localparam axi_addr_t EndAddr   =
       axi_addr_t'(StartAddr + TbRegNumBytes + TbRegNumBytes/5);
 
-  localparam byte_t [TbRegNumBytes-1:0] RegRstVal = '0;
+  localparam  byte_t [TbRegNumBytes-1:0] RegRstVal = '0;
+  localparam  PITCH_SIZE                           = 9;
 
   // -------------------------------
   // AXI Interfaces
@@ -99,7 +101,6 @@ module picorv_x_pulp_soc
   AXI_LITE #( .AXI_ADDR_WIDTH (AxiAddrWidth), .AXI_DATA_WIDTH (AxiDataWidth) ) master [ NoMasters-1: 0] ();
   AXI_LITE #( .AXI_ADDR_WIDTH (AxiAddrWidth), .AXI_DATA_WIDTH (AxiDataWidth) ) slave  [  NoSlaves-1: 0] ();
 
-  localparam PITCH_SIZE           = 9;
 
   logic       [ 7: 0]             MST_U0_WR_IMP_HSIZE     , MST_U0_RD_IMP_HSIZE;
   logic       [ 7: 0]             MST_U0_WR_IMP_COOR_MINX , MST_U0_RD_IMP_COOR_MINX;
@@ -146,6 +147,76 @@ module picorv_x_pulp_soc
   assign imp_start                = imp_reg_start_flag;
 
 
+  axi_lite_xbar_intf #(
+  .Cfg                            ( xbar_cfg ),
+  .rule_t                         ( rule_t   )
+) u0_axi_lite_xbar_intf (
+  .rst_ni                         ( rst_n    ),
+  .clk_i                          ( clk      ),
+  .test_i                         ( 1'b0     ),
+  .slv_ports                      ( master   ),
+  .mst_ports                      ( slave    ),
+  .addr_map_i                     ( AddrMap  ),
+  .en_default_mst_port_i          ( '0       ),
+  .default_mst_port_i             ( '0       )
+);
+
+  // Dut parameters
+
+  localparam int unsigned         NoApbSlaves = 2;    // How many APB Slaves  there are
+  localparam int unsigned         NoApbRules  = 2;    // How many address rules for the APB slaves
+  localparam bit                  PipelineRequest  = 1'b0;
+  localparam bit                  PipelineResponse = 1'b0;
+
+  typedef logic [NoApbSlaves-1:0] apb_sel_t;
+  addr_t                          paddr_o;
+  logic       [2:0]               pprot_o;
+  apb_sel_t                       pselx_o;
+  logic                           penable_o;
+  logic                           pwrite_o;
+  data_t                          pwdata_o;
+  strb_t                          pstrb_o;
+  logic       [NoApbSlaves-1 :0]  pready_i;
+  data_t      [NoApbSlaves-1 :0]  prdata_i;
+  logic       [NoApbSlaves-1 :0]  pslverr_i;
+
+  localparam rule_t [NoApbRules-1:0] APB_AddrMap = '{
+    //'{idx: 32'd7, start_addr: 32'h0001_0000, end_addr: 32'h0001_1000},
+    //'{idx: 32'd6, start_addr: 32'h0000_9000, end_addr: 32'h0001_0000},
+    //'{idx: 32'd5, start_addr: 32'h0000_8000, end_addr: 32'h0000_9000},
+    //'{idx: 32'd4, start_addr: 32'h0002_0000, end_addr: 32'h0002_1000},
+    //'{idx: 32'd4, start_addr: 32'h0000_7000, end_addr: 32'h0000_8000},
+    //'{idx: 32'd3, start_addr: 32'h0000_6300, end_addr: 32'h0000_7000},
+    //'{idx: 32'd2, start_addr: 32'h0000_4000, end_addr: 32'h0000_6300},
+    '{idx: 32'd1, start_addr: 32'h0013_0100, end_addr: 32'h0013_01FF},
+    '{idx: 32'd0, start_addr: 32'h0013_0000, end_addr: 32'h0013_00FF}
+  };
+
+axi_lite_to_apb_intf #(
+  .NoApbSlaves                    ( NoApbSlaves      ), // Number of connected APB slaves
+  .NoRules                        ( NoApbRules       ), // Number of APB address rules
+  .AddrWidth                      ( AxiAddrWidth     ), // Address width                             //same as AXI4-Lite
+  .DataWidth                      ( AxiDataWidth     ), // Data width                                //same as AXI4-Lite
+  .PipelineRequest                ( PipelineRequest  ), // Pipeline request path
+  .PipelineResponse               ( PipelineResponse ), // Pipeline response path
+  .rule_t                         ( rule_t           )  // Address Decoder rule from `common_cells`  // Has to be the same width as axi addr
+) u0_axi_lite_to_apb_intf (
+  .rst_ni                         ( rst_n            ),
+  .clk_i                          ( clk              ),
+  .slv                            ( slave[3]         ),
+  .paddr_o                        ( paddr_o          ),  // type is as same as AXI4-Lite
+  .pprot_o                        ( pprot_o          ),  // type is as same as AXI4-Lite
+  .pselx_o                        ( pselx_o          ),
+  .penable_o                      ( penable_o        ),
+  .pwrite_o                       ( pwrite_o         ),
+  .pwdata_o                       ( pwdata_o         ),  // type is as same as AXI4-Lite
+  .pstrb_o                        ( pstrb_o          ),  // type is as same as AXI4-Lite
+  .pready_i                       ( {NoApbSlaves{1'b1}}        ), //pready_i
+  .prdata_i                       ( {NoApbSlaves{'b0}}         ), //prdata_i
+  .pslverr_i                      ( {NoApbSlaves{1'b0}}        ), //pslverr_i
+  .addr_map_i                     ( APB_AddrMap       )
+);
+
   picorv32_axi #(
 `ifndef SYNTH_TEST
 `ifdef SP_TEST
@@ -160,7 +231,7 @@ module picorv_x_pulp_soc
   .ENABLE_TRACE(1)
 `endif
 ) u0_picorv32_axi (
-  .resetn                         ( rst_n             ),
+  .resetn                         ( rst_n              ),
   .clk                            ( clk                ),
   .trap                           ( trap               ),
   .mem_axi_awvalid                ( master[0].aw_valid ), // o
@@ -260,20 +331,6 @@ axi_lite_regfile_intf #(
   .reg_q_rdat                     ( reg_q_rdat  )
 );
 
-axi_lite_xbar_intf #(
-  .Cfg                            ( xbar_cfg ),
-  .rule_t                         ( rule_t   )
-) soc_xbar_dut (
-  .rst_ni                         ( rst_n    ),
-  .clk_i                          ( clk      ),
-  .test_i                         ( 1'b0     ),
-  .slv_ports                      ( master   ),
-  .mst_ports                      ( slave    ),
-  .addr_map_i                     ( AddrMap  ),
-  .en_default_mst_port_i          ( '0       ),
-  .default_mst_port_i             ( '0       )
-);
-
 mst_imp_r_ch u0_mst_imp_r_ch (
   .rst_n                          ( rst_n                   ),
   .clk                            ( clk                     ),
@@ -284,13 +341,13 @@ mst_imp_r_ch u0_mst_imp_r_ch (
   .mem_axi_rvalid                 ( master[1].r_valid       ),
   .mem_axi_rready                 ( master[1].r_ready       ),
   .mem_axi_rdata                  ( master[1].r_data        ),
-  .IMP_HSIZE                      ( 8'd4                    ), // MST_U0_IMP_HSIZE
-  .IMP_VSIZE                      ( 8'd6                    ), // MST_U0_IMP_VSIZE
-  .IMP_COOR_MINX                  ( 8'd0                    ), // MST_U0_IMP_COOR_MINX
-  .IMP_COOR_MINY                  ( 8'd0                    ), // MST_U0_IMP_COOR_MINY
-  .IMP_SRC_BADDR                  ( 32'h0000_0000),//MST_U0_RD_IMP_SRC_BADDR ), // 32'h0010_0000
-  .IMP_ADR_PITCH                  ( 9'd16 ),//MST_U0_RD_IMP_ADR_PITCH ),
-  .IMP_ST                         ( imp_reg_start_flag_rd   )
+  .IMP_HSIZE                      ( MST_U0_RD_IMP_HSIZE     ), //8'd4
+  .IMP_VSIZE                      ( MST_U0_RD_IMP_VSIZE     ), //8'd6
+  .IMP_COOR_MINX                  ( MST_U0_RD_IMP_COOR_MINX ), //8'd0
+  .IMP_COOR_MINY                  ( MST_U0_RD_IMP_COOR_MINY ), //8'd0
+  .IMP_SRC_BADDR                  ( MST_U0_RD_IMP_SRC_BADDR ), // 32'h0010_0000
+  .IMP_ADR_PITCH                  ( MST_U0_RD_IMP_ADR_PITCH ),
+  .IMP_ST                         ( MST_U0_RD_IMP_ST        )
 );
 
 mst_imp_w_ch u0_mst_imp_w_ch (
@@ -313,7 +370,7 @@ mst_imp_w_ch u0_mst_imp_w_ch (
   .IMP_COOR_MINY                  ( MST_U0_WR_IMP_COOR_MINY ),
   .IMP_DST_BADDR                  ( MST_U0_WR_IMP_DST_BADDR ),
   .IMP_ADR_PITCH                  ( MST_U0_WR_IMP_ADR_PITCH ),
-  //.IMP_ST                         ( imp_start               )
+  //.IMP_ST                         ( 1'b0)//imp_start               )
   .IMP_ST                         ( MST_U0_WR_IMP_ST        )
 );
 

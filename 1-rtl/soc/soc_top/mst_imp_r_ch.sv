@@ -37,7 +37,7 @@ module mst_imp_r_ch (
   input  logic                    IMP_ST,                                 // Start bit，1T start pulse
 
   input  logic [31: 0]            IMP_SRC_BADDR,                          // source base (32b)
-  input  logic [ 8: 0]            IMP_ADR_PITCH                           // bytes per row
+  input  logic [31: 0]            IMP_ADR_PITCH                           // bytes per row
 
 
 );

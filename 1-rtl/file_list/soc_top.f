@@ -144,6 +144,21 @@ $RTL_ROOT/soc/dip_pulp_common_verification/src/rand_synch_driver.sv
 //# Level 2
 $RTL_ROOT/soc/dip_pulp_common_verification/src/rand_stream_slv.sv
 
+// ***********************/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**
+// dip_pulp_apb          /**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/***
+// *********************/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/****
++incdir+$RTL_ROOT/soc/dip_pulp_apb/include
+//# Level 0
+$RTL_ROOT/soc/dip_pulp_apb/src/apb_pkg.sv
+//# Level 1
+$RTL_ROOT/soc/dip_pulp_apb/src/apb_intf.sv
+//# Level 2
+$RTL_ROOT/soc/dip_pulp_apb/src/apb_err_slv.sv
+$RTL_ROOT/soc/dip_pulp_apb/src/apb_regs.sv
+$RTL_ROOT/soc/dip_pulp_apb/src/apb_cdc.sv
+$RTL_ROOT/soc/dip_pulp_apb/src/apb_demux.sv
+//- target: simulation            // files:
+$RTL_ROOT/soc/dip_pulp_apb/src/apb_test.sv
 
 // ***********************/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**
 // pulp_axi              /**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/***
