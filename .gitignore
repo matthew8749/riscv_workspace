@@ -1,50 +1,80 @@
 #===================================================================================================
-# ignore ram
+# IDE, Editors & OS
 #===================================================================================================
-**/1-rtl/macro/bhvr/ram/**
-**/1-rtl/macro/bhvr/rom/**
+**.sublime-workspace
+**/.editorconfig
+.DS_Store
+
+#===================================================================================================
+# 1-RTL: Macros, IPs, Libs
+#===================================================================================================
+**/1-rtl/macro/bhvr/ram/
+**/1-rtl/macro/bhvr/rom/
+**/1-rtl/libs/
 **/1-rtl/file_list/0.macro.bhvr.f
 **/1-rtl/file_list/0.ip.svlg.f
 **/1-rtl/file_list/0.ip.vlog.f
 
-#===================================================================================================
-# ignore libs
-#===================================================================================================
-**/1-rtl/libs
+# FORK's SOC Submodule specific
 **/1-rtl/soc/**/.git
+**/1-rtl/soc/dip_pulp_axi/scripts
+**/1-rtl/soc/dip_pulp_apb/scripts
+
+# FORK's  CI/CD & Configs in RTL
+/1-rtl/soc/dip_pulp_axi/.ci
+/1-rtl/soc/dip_pulp_axi/.github/workflows
+/1-rtl/soc/dip_pulp_axi/.gitlab-ci.d
+1-rtl/soc/dip_pulp_axi/.gitlab-ci.yml
+1-rtl/soc/dip_pulp_axi/Makefile
+
+
+#===================================================================================================
+# 2-SIM: Simulation Projects
+#===================================================================================================
+# 1. Ignore contents of 2-sim, but NOT the folder itself
+/2-sim/*
+# 2. Allow Git to enter sim_soc
+!/2-sim/sim_soc/
+# 3. Ignore contents of sim_soc
+/2-sim/sim_soc/*
+# 4. Finally, keep the firmware folder
+!/2-sim/sim_soc/firmware/
 
 #===================================================================================================
 # ignore script
 #===================================================================================================
-**/3-script
-3-script/makefile/set_dir_path.mk
+**/3-script/
 
 #===================================================================================================
 # ignore synthesis workspace
 #===================================================================================================
-**/4-synthesis
+**/4-synthesis/
 
 #===================================================================================================
-# ignore folder
+# ignore template
 #===================================================================================================
-**/2-sim/**/**
 **/B-template/**
 
 #===================================================================================================
-# simulation output
+# Specify filepatterns you want git to ignore.  Misc / TODO
 #===================================================================================================
-**/64/**
-**/aliasextractLog/**
-**/AN.DB/**
-**/csrc/**
-**/simv.daidir/**
-**/verdiLog/**
-**/vhdlcomLog/**
-**/vericomLog/**
-**/nWaveLog/**
-**/work.verdi.lib++/**
-**/extracted.src_alias/**
-**/extracted.src_alias
+**/5-todo/note.todo
+
+#===================================================================================================
+# Global Output Artifacts (Simulation & Synthesis)
+#===================================================================================================
+# Simulation Logs & DBs
+**/64/
+**/AN.DB/
+**/csrc/
+**/simv.daidir/
+**/work.verdi.lib++/
+**/extracted.src_alias/
+**/aliasextractLog/
+**/nWaveLog/
+**/verdiLog/
+**/vericomLog/
+**/vhdlcomLog/
 **/ucli.key
 **/novas.conf
 **/novas.rc
@@ -54,39 +84,11 @@
 **/vcs.log
 **/v.log
 **/vc_hdrs.h
+*.do
 
-#===================================================================================================
-# ignore Specify project
-#===================================================================================================
-2-sim/sim_timing_gen/csrc/**
-2-sim/sim_timing_gen/csrc/archive.1/**
-2-sim/sim_timing_gen/simv.daidir/**
-2-sim/sim_timing_gen/AN.DB/**
-2-sim/sim_timing_gen/64/**
-2-sim/sim_timing_gen/nWaveLog/**
-2-sim/sim_timing_gen/verdiLog/**
-2-sim/sim_timing_gen/vericomLog/**
-2-sim/sim_timing_gen/vhdlcomLog/**
-2-sim/sim_timing_gen/work.verdi.lib++/**
-2-sim/sim_timing_gen/aliasextractLog/**
-
-2-sim/sim_soc/csrc/**
-2-sim/sim_soc/csrc/archive.1/**
-2-sim/sim_soc/simv.daidir/**
-2-sim/sim_soc/AN.DB/**
-2-sim/sim_soc/64/**
-2-sim/sim_soc/nWaveLog/**
-2-sim/sim_soc/verdiLog/**
-2-sim/sim_soc/vericomLog/**
-2-sim/sim_soc/vhdlcomLog/**
-2-sim/sim_soc/work.verdi.lib++/**
-2-sim/sim_soc/aliasextractLog/**
-
-
-#===================================================================================================
-# Specify filepatterns you want git to ignore.
-#===================================================================================================
-**/5-todo/note.todo
-**.sublime-workspace
-
-
+# Firmware / Compilation Objects
+*.o
+*.hex
+*.elf
+*.bin
+*.map
