@@ -70,7 +70,7 @@ module axi_lite_memory #(
   assign s_ar_ready  = 1'b1;
 
   assign s_r_valid   = xt_r_valid;
-  //assign s_r_data    = xt_r_data;
+
   assign s_r_resp    = 2'b00;
 
 

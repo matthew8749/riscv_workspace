@@ -157,6 +157,7 @@ $RTL_ROOT/soc/dip_pulp_apb/src/apb_err_slv.sv
 $RTL_ROOT/soc/dip_pulp_apb/src/apb_regs.sv
 $RTL_ROOT/soc/dip_pulp_apb/src/apb_cdc.sv
 $RTL_ROOT/soc/dip_pulp_apb/src/apb_demux.sv
+$RTL_ROOT/soc/dip_pulp_apb/src/apb_regs_intf_wrapper.sv
 //- target: simulation            // files:
 $RTL_ROOT/soc/dip_pulp_apb/src/apb_test.sv
 
@@ -200,6 +201,7 @@ $RTL_ROOT/soc/dip_pulp_axi/src/axi_lite_mailbox.sv
 $RTL_ROOT/soc/dip_pulp_axi/src/axi_lite_mux.sv
 $RTL_ROOT/soc/dip_pulp_axi/src/axi_lite_regs.sv
 $RTL_ROOT/soc/dip_pulp_axi/src/axi_lite_regfile.sv
+$RTL_ROOT/soc/dip_pulp_axi/src/axi_lite_regfile_intf_wrapper.sv
 $RTL_ROOT/soc/dip_pulp_axi/src/axi_lite_to_apb.sv
 $RTL_ROOT/soc/dip_pulp_axi/src/axi_lite_to_axi.sv
 $RTL_ROOT/soc/dip_pulp_axi/src/axi_modify_address.sv
@@ -280,10 +282,15 @@ $RTL_ROOT/soc/dip_rdy_ack/alu_cop.v
 
 
 $RTL_ROOT/share/tb_clk_gen.v
+$RTL_ROOT/soc/soc_top/sync_xxxt.sv
+$RTL_ROOT/soc/soc_top/icg_posedge.sv
+$RTL_ROOT/soc/soc_top/clk_div_n.sv
 $RTL_ROOT/soc/soc_top/print.sv
 $RTL_ROOT/soc/soc_top/mst_imp_r_ch.sv
 $RTL_ROOT/soc/soc_top/mst_imp_w_ch.sv
+$RTL_ROOT/soc/soc_top/mst_imp_wrapper.sv
 $RTL_ROOT/soc/soc_top/axi_lite_memory.sv
+$RTL_ROOT/soc/soc_top/BACKBONE.sv
 //$RTL_ROOT/soc/soc_top/soc_top.sv
 $RTL_ROOT/soc/soc_top/picorv_x_pulp_soc.sv
 

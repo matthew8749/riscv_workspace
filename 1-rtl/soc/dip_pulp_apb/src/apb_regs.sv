@@ -73,9 +73,9 @@ module apb_regs #(
   input  req_t                      req_i,
   output resp_t                     resp_o,
   // Register Interface
-  input  apb_addr_t                 base_addr_i, // base address of the read/write registers
-  input  reg_data_t [NoApbRegs-1:0] reg_init_i,
-  output reg_data_t [NoApbRegs-1:0] reg_q_o
+  input  logic[ApbAddrWidth-1:0]                 base_addr_i, // base address of the read/write registers
+  input  logic[RegDataWidth-1:0] [NoApbRegs-1:0] reg_init_i,
+  output logic[RegDataWidth-1:0] [NoApbRegs-1:0] reg_q_o
 );
   localparam int unsigned IdxWidth  = (NoApbRegs > 32'd1) ? $clog2(NoApbRegs) : 32'd1;
   typedef logic [IdxWidth-1:0]     idx_t;
@@ -214,9 +214,9 @@ module apb_regs_intf #(
   input  logic                        preset_ni,
   APB.Slave                           slv,
   // Register Interface
-  input  apb_addr_t                   base_addr_i, // base address of the read only registers
-  input  reg_data_t [NO_APB_REGS-1:0] reg_init_i,  // initalisation value for the registers
-  output reg_data_t [NO_APB_REGS-1:0] reg_q_o
+  input  logic [APB_ADDR_WIDTH-1:0]                    base_addr_i, // base address of the read only registers
+  input  logic [REG_DATA_WIDTH-1:0] [NO_APB_REGS-1:0]  reg_init_i,  // initalisation value for the registers
+  output logic [REG_DATA_WIDTH-1:0] [NO_APB_REGS-1:0]  reg_q_o
 );
   localparam int unsigned APB_STRB_WIDTH = cf_math_pkg::ceil_div(APB_DATA_WIDTH, 8);
   typedef logic [APB_DATA_WIDTH-1:0] apb_data_t;

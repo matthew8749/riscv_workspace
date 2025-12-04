@@ -290,7 +290,7 @@ verdi: cverdi
 	@echo ".                                                                   ."
 	@echo "*-.,_,.-*'*'*-.,_,.-*-.,_,.-*'*'*-.,_,.-*-.,_,.-*'*'*-.,_,.-*-.,_,.-*"
 	@$(CMD_VERDI_ALIAS) -lib work.verdi -top $(CFG_SIM_TOP) -output    extracted.src_alias
-	@$(CMD_VERDI)       -lib work.verdi -top $(CFG_SIM_TOP) -aliasFile extracted.src_alias  &
+	@$(CMD_VERDI)       -lib work.verdi -top $(CFG_SIM_TOP) -aliasFile extracted.src_alias  -ssf $(CFG_SIM_TOP).fsdb &
 
 ifeq ($(CFG_SIM_PROJ), sim_picorv)
 	@$(CMD_VERDI_ALIAS) -lib work.verdi -top $(CFG_SIM_TOP) -output    extracted.src_alias

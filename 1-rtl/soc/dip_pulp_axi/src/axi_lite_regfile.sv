@@ -127,8 +127,7 @@ module axi_lite_regfile #(
   /// If unused, set this input to `'0`.
   input  logic  [RegNumBytes-1:0] reg_load_i,
   /// The registered value of each byte.
-  output byte_t [RegNumBytes-1:0] reg_q_o,
-  output byte_t [RegNumBytes-1:0] reg_q_rdat
+  output byte_t [RegNumBytes-1:0] reg_q_o
 );
 
   // Define the number of register chunks needed to map all `RegNumBytes` to the AXI channel.
@@ -212,48 +211,6 @@ module axi_lite_regfile #(
   assign chunk_ro     = &read_only;
 
 
-
-  localparam MST_U0_WR_IMP_DST_BADDR = `MST_U0_WR_IMP_DST_BADDR;
-  localparam MST_U0_WR_IMP_ADR_PITCH = `MST_U0_WR_IMP_ADR_PITCH;
-  localparam MST_U0_RD_IMP_SRC_BADDR = `MST_U0_RD_IMP_SRC_BADDR;
-  localparam MST_U0_RD_IMP_ADR_PITCH = `MST_U0_RD_IMP_ADR_PITCH;
-  // Register logic.
-  assign reg_q_rdat[0]  = reg_q_o[0];               // MST_U0_WR_IMP_DST_BADDR[  7:  0]   // 0x0012_0000
-  assign reg_q_rdat[1]  = reg_q_o[1];               // MST_U0_WR_IMP_DST_BADDR[ 15:  8]   // 0x0012_0001
-  assign reg_q_rdat[2]  = reg_q_o[2];               // MST_U0_WR_IMP_DST_BADDR[ 23: 16]   // 0x0012_0002
-  assign reg_q_rdat[3]  = reg_q_o[3];               // MST_U0_WR_IMP_DST_BADDR[ 31: 24]   // 0x0012_0003
-  assign reg_q_rdat[4]  = reg_q_o[4];               // MST_U0_WR_IMP_ADR_PITCH[  7:  0]   // 0x0012_0004
-  assign reg_q_rdat[5]  = reg_q_o[5];               // MST_U0_WR_IMP_ADR_PITCH[ 15:  8]   // 0x0012_0005
-  assign reg_q_rdat[6]  = reg_q_o[6];               // MST_U0_WR_IMP_ADR_PITCH[ 23: 16]   // 0x0012_0006
-  assign reg_q_rdat[7]  = reg_q_o[7];               // MST_U0_WR_IMP_ADR_PITCH[ 31: 24]   // 0x0012_0007
-  assign reg_q_rdat[8]  = reg_q_o[8];               // MST_U0_WR_IMP_HSIZE                // 0x0012_0008
-  assign reg_q_rdat[9]  = reg_q_o[9];               // MST_U0_WR_IMP_VSIZE                // 0x0012_0009
-  assign reg_q_rdat[10] = reg_q_o[10];              // MST_U0_WR_IMP_COOR_MINX            // 0x0012_000A
-  assign reg_q_rdat[11] = reg_q_o[11];              // MST_U0_WR_IMP_COOR_MINY            // 0x0012_000B
-  assign reg_q_rdat[12] = reg_q_o[12];              // MST_U0_WR_IMP_ST                   // 0x0012_000C
-  assign reg_q_rdat[13] = reg_q_o[13];              //                                    // 0x0012_000D
-  assign reg_q_rdat[14] = reg_q_o[14];              //                                    // 0x0012_000E
-  assign reg_q_rdat[15] = reg_q_o[15];              //                                    // 0x0012_000F
-
-  assign reg_q_rdat[16] = reg_q_o[16];              // MST_U0_RD_IMP_SRC_BADDR[  7:  0]   // 0x0012_0010
-  assign reg_q_rdat[17] = reg_q_o[17];              // MST_U0_RD_IMP_SRC_BADDR[ 15:  8]   // 0x0012_0011
-  assign reg_q_rdat[18] = reg_q_o[18];              // MST_U0_RD_IMP_SRC_BADDR[ 23: 16]   // 0x0012_0012
-  assign reg_q_rdat[19] = reg_q_o[19];              // MST_U0_RD_IMP_SRC_BADDR[ 31: 24]   // 0x0012_0013
-  assign reg_q_rdat[20] = reg_q_o[20];              // MST_U0_RD_IMP_ADR_PITCH[  7:  0]   // 0x0012_0014
-  assign reg_q_rdat[21] = reg_q_o[21];              // MST_U0_RD_IMP_ADR_PITCH[ 15:  8]   // 0x0012_0015
-  assign reg_q_rdat[22] = reg_q_o[22];              // MST_U0_RD_IMP_ADR_PITCH[ 23: 16]   // 0x0012_0016
-  assign reg_q_rdat[23] = reg_q_o[23];              // MST_U0_RD_IMP_ADR_PITCH[ 31: 24]   // 0x0012_0017
-  assign reg_q_rdat[24] = reg_q_o[24];              // MST_U0_RD_IMP_HSIZE                // 0x0012_0018
-  assign reg_q_rdat[25] = reg_q_o[25];              // MST_U0_RD_IMP_VSIZE                // 0x0012_0019
-  assign reg_q_rdat[26] = reg_q_o[26];              // MST_U0_RD_IMP_COOR_MINX            // 0x0012_001A
-  assign reg_q_rdat[27] = reg_q_o[27];              // MST_U0_RD_IMP_COOR_MINY            // 0x0012_001B
-  assign reg_q_rdat[28] = reg_q_o[28];              // MST_U0_RD_IMP_ST                   // 0x0012_001C
-  assign reg_q_rdat[29] = reg_q_o[29];              //                                    // 0x0012_001D
-  assign reg_q_rdat[30] = reg_q_o[30];              //                                    // 0x0012_001E
-  assign reg_q_rdat[31] = reg_q_o[31];              //                                    // 0x0012_001F
-  for (genvar reg_i = 32; reg_i < RegNumBytes; reg_i++) begin
-    assign reg_q_rdat[reg_i] = reg_q_o[reg_i];
-  end
 
   // Register write logic.
   always_comb begin
@@ -344,7 +301,7 @@ module axi_lite_regfile #(
         reg_byte_idx = unsigned'(ar_chunk_idx) * AxiStrbWidth + i;
         // Guard to not index outside the `reg_q_o` array.
         if (reg_byte_idx < RegNumBytes) begin
-          r_chan.data[8*i+:8]       = reg_q_rdat[reg_byte_idx];
+          r_chan.data[8*i+:8]       = reg_q_o[reg_byte_idx];
           rd_active_o[reg_byte_idx] = r_valid & r_ready;
         end else begin
           r_chan.data[8*i+:8] = 8'h00;
@@ -489,8 +446,7 @@ module axi_lite_regfile_intf #(
   output logic  [REG_NUM_BYTES-1:0] rd_active_o,
   input  byte_t [REG_NUM_BYTES-1:0] reg_d_i,
   input  logic  [REG_NUM_BYTES-1:0] reg_load_i,
-  output byte_t [REG_NUM_BYTES-1:0] reg_q_o,
-  output byte_t [REG_NUM_BYTES-1:0] reg_q_rdat
+  output byte_t [REG_NUM_BYTES-1:0] reg_q_o
 );
 
   typedef logic [AXI_ADDR_WIDTH-1:0]   addr_t;
@@ -529,8 +485,7 @@ module axi_lite_regfile_intf #(
     .rd_active_o,
     .reg_d_i,
     .reg_load_i,
-    .reg_q_o,
-    .reg_q_rdat
+    .reg_q_o
   );
 
   // Validate parameters.

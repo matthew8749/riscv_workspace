@@ -15,8 +15,10 @@ module axi4_memory #(
   input      [31:0] mem_axi_wdata,
   input      [ 3:0] mem_axi_wstrb,
 
-  output reg        mem_axi_bvalid,
   input             mem_axi_bready,
+  output reg        mem_axi_bvalid,
+  output wire [1:0] mem_axi_bresp,
+
 
   input             mem_axi_arvalid,
   output reg        mem_axi_arready,
@@ -26,9 +28,13 @@ module axi4_memory #(
   output reg        mem_axi_rvalid,
   input             mem_axi_rready,
   output reg [31:0] mem_axi_rdata,
+  output wire [1:0] mem_axi_rresp,
+
 
   output reg        tests_passed
 );
+  assign mem_axi_bresp = 2'b00;
+  assign mem_axi_rresp = 2'b00;
 
   //reg [31:0]   memory [0:128*1024/4-1] /* verilator public */;
   reg [31:0]   memory [0:32767] /* verilator public */;
