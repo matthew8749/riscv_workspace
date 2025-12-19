@@ -157,7 +157,6 @@ $RTL_ROOT/soc/dip_pulp_apb/src/apb_err_slv.sv
 $RTL_ROOT/soc/dip_pulp_apb/src/apb_regs.sv
 $RTL_ROOT/soc/dip_pulp_apb/src/apb_cdc.sv
 $RTL_ROOT/soc/dip_pulp_apb/src/apb_demux.sv
-$RTL_ROOT/soc/dip_pulp_apb/src/apb_regs_intf_wrapper.sv
 //- target: simulation            // files:
 $RTL_ROOT/soc/dip_pulp_apb/src/apb_test.sv
 
@@ -201,7 +200,6 @@ $RTL_ROOT/soc/dip_pulp_axi/src/axi_lite_mailbox.sv
 $RTL_ROOT/soc/dip_pulp_axi/src/axi_lite_mux.sv
 $RTL_ROOT/soc/dip_pulp_axi/src/axi_lite_regs.sv
 $RTL_ROOT/soc/dip_pulp_axi/src/axi_lite_regfile.sv
-$RTL_ROOT/soc/dip_pulp_axi/src/axi_lite_regfile_intf_wrapper.sv
 $RTL_ROOT/soc/dip_pulp_axi/src/axi_lite_to_apb.sv
 $RTL_ROOT/soc/dip_pulp_axi/src/axi_lite_to_axi.sv
 $RTL_ROOT/soc/dip_pulp_axi/src/axi_modify_address.sv
@@ -239,6 +237,21 @@ $RTL_ROOT/soc/dip_pulp_axi/src/axi_xbar.sv
 $RTL_ROOT/soc/dip_pulp_axi/src/axi_xp.sv
 
 // ***********************/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**
+// timing_gen            /**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/***
+// *********************/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/****
++incdir+$RTL_ROOT/soc/dip_timing_gen
++incdir+$RTL_ROOT/soc/dip_timing_gen/include
++incdir+$ROOT/2-sim/sim_timing_gen/image_in
++incdir+$ROOT/2-sim/sim_timing_gen/image_out
++incdir+$ROOT/2-sim/sim_soc/image_in
++incdir+$ROOT/2-sim/sim_soc/image_out
+$RTL_ROOT/soc/dip_timing_gen/image_capture.v
+$RTL_ROOT/soc/dip_timing_gen/image_source.v
+$RTL_ROOT/soc/dip_timing_gen/tmg_pass.v
+$RTL_ROOT/soc/dip_timing_gen/timing_gen.sv
+$RTL_ROOT/soc/dip_timing_gen/sim_timing_gen.sv
+
+// ***********************/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**
 // picorv32              /**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/***
 // *********************/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/****
 $RTL_ROOT/soc/dip_picorv32/picorv32_define.sv
@@ -266,9 +279,19 @@ $RTL_ROOT/sim_model/mdl_picorv32/axi4_memory_bhv.sv
 $RTL_ROOT/soc/dip_sync_fifo/sync_fifo.v
 
 // ***********************/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**
+// pulp_apb_i2c          /**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/***
+// *********************/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/****
++incdir+$RTL_ROOT/soc/dip_pulp_apb_i2c
+$RTL_ROOT/soc/dip_pulp_apb_i2c/i2c_master_defines.sv
+$RTL_ROOT/soc/dip_pulp_apb_i2c/apb_i2c.sv
+$RTL_ROOT/soc/dip_pulp_apb_i2c/i2c_master_bit_ctrl.sv
+$RTL_ROOT/soc/dip_pulp_apb_i2c/i2c_master_byte_ctrl.sv
+
+// ***********************/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**
 // rdy_ack_handshake     /**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/***
 // *********************/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/****
 $RTL_ROOT/soc/dip_rdy_ack/rdy_ack_handshake.v
+$RTL_ROOT/soc/dip_rdy_ack/axi_like_handshake.sv
 $RTL_ROOT/soc/dip_rdy_ack/alu.v
 $RTL_ROOT/soc/dip_rdy_ack/alu_cop.v
 
@@ -282,14 +305,18 @@ $RTL_ROOT/soc/dip_rdy_ack/alu_cop.v
 
 
 $RTL_ROOT/share/tb_clk_gen.v
+$RTL_ROOT/soc/soc_top/print.sv
 $RTL_ROOT/soc/soc_top/sync_xxxt.sv
 $RTL_ROOT/soc/soc_top/icg_posedge.sv
-$RTL_ROOT/soc/soc_top/clk_div_n.sv
-$RTL_ROOT/soc/soc_top/print.sv
+$RTL_ROOT/soc/soc_top/ma_clk_div_n.sv
+$RTL_ROOT/soc/soc_top/ma_sync_rst.sv
+$RTL_ROOT/soc/soc_top/ma_clks_group_gen.sv
+$RTL_ROOT/soc/soc_top/axi_lite_memory.sv
 $RTL_ROOT/soc/soc_top/mst_imp_r_ch.sv
 $RTL_ROOT/soc/soc_top/mst_imp_w_ch.sv
-$RTL_ROOT/soc/soc_top/mst_imp_wrapper.sv
-$RTL_ROOT/soc/soc_top/axi_lite_memory.sv
+$RTL_ROOT/soc/soc_top/mst_imp_wrap.sv
+$RTL_ROOT/soc/soc_top/apb_regs_intf_wrap.sv
+$RTL_ROOT/soc/soc_top/axi_lite_regfile_intf_wrap.sv
 $RTL_ROOT/soc/soc_top/BACKBONE.sv
 //$RTL_ROOT/soc/soc_top/soc_top.sv
 $RTL_ROOT/soc/soc_top/picorv_x_pulp_soc.sv

@@ -15,6 +15,8 @@
 `timescale 1ns/10ps
 `include "axi/typedef.svh"
 `include "axi/assign.svh"
+`include "apb/typedef.svh"
+`include "apb/assign.svh"
 `include "include/Global_define.svh"
 
 module BACKBONE
@@ -94,7 +96,7 @@ module BACKBONE
       // '{idx: 32'd3, start_addr: 32'h0013_0300, end_addr: 32'h0013_03FF},
       // '{idx: 32'd2, start_addr: 32'h0013_0500, end_addr: 32'h0013_05FF},
       // '{idx: 32'd2, start_addr: 32'h0013_0200, end_addr: 32'h0013_02FF},
-      // '{idx: 32'd1, start_addr: 32'h0013_0100, end_addr: 32'h0013_01FF},
+      '{idx: 32'd1, start_addr: 32'h0013_0100, end_addr: 32'h0013_10FF},   // i2c 4KB
       '{idx: 32'd0, start_addr: 32'h0013_0000, end_addr: 32'h0013_00FF}    // apb reg
     };
 

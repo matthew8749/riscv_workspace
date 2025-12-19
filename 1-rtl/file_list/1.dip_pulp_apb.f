@@ -14,7 +14,6 @@ $RTL_ROOT/soc/dip_pulp_apb/src/apb_err_slv.sv
 $RTL_ROOT/soc/dip_pulp_apb/src/apb_regs.sv
 $RTL_ROOT/soc/dip_pulp_apb/src/apb_cdc.sv
 $RTL_ROOT/soc/dip_pulp_apb/src/apb_demux.sv
-$RTL_ROOT/soc/dip_pulp_apb/src/apb_regs_intf_wrapper.sv
 //- target: simulation            // files:
 $RTL_ROOT/soc/dip_pulp_apb/src/apb_test.sv
 
