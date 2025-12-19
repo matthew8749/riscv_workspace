@@ -1,7 +1,7 @@
 `timescale 1ns / 1ps
 // +FHDR--------------------------------------------------------------------------------------------------------- //
 // Project ____________                                                                                           //
-// File name __________ timing_generator.v                                                                        //
+// File name __________ timing_gen.v                                                                              //
 // Creator ____________ Yan, Wei-Ting                                                                             //
 // Built Date _________ 03-01-2022                                                                                //
 // Function ___________                                                                                           //
@@ -13,30 +13,39 @@
 // -FHDR--------------------------------------------------------------------------------------------------------- //
 //+...........+...................+.............................................................................. //
 //3...........15..................35............................................................................. //
-module timing_generator(
+module timing_gen(
   input                           clk,
   input                           rst_n,
-  input       [15: 0]             h_total,
-  input       [15: 0]             h_size,  //width
-  input       [15: 0]             h_sync,
-
-  input       [15: 0]             h_start, //h_start = h_sync + hbp
-  //input       [15: 0]             h_start, //h_start = h_sync + hbp + hlb
-
-
-
-  input       [15: 0]             v_total,
-  input       [15: 0]             v_size,
-  input       [15: 0]             v_sync,
-  input       [15: 0]             v_start,
   input       [22: 0]             vs_reset,
+
+  input       [15 : 0]            Hor_Addr_Time,             //= 16'd640;
+  input       [15 : 0]            Hor_Sync_Time,             //= 16'd96;
+  input       [15 : 0]            Hor_Back_Porch,            //= 16'd40;
+  input       [15 : 0]            Hor_Left_Border,           //= 16'd8;
+  input       [15 : 0]            Hor_Right_Border,          //= 16'd8;
+  input       [15 : 0]            Hor_Front_Porch,           //= 16'd8;
+
+  input       [15 : 0]            Ver_Addr_Time,             //= 16'd480;
+  input       [15 : 0]            Ver_Sync_Time,             //= 16'd2;
+  input       [15 : 0]            Ver_Back_Porch,            //= 16'd35;
+  input       [15 : 0]            Ver_Bottom_Border,         //= 16'd8;
+  input       [15 : 0]            Ver_Top_Border,            //= 16'd8;
+  input       [15 : 0]            Ver_Front_Porch,           //= 16'd2;
 
   output      [15: 0]             hcount,
   output      [15: 0]             vcount,
   output      [26: 24]            Synco
+  //input       [15: 0]             h_sync,
+  //input       [15: 0]             h_start, //h_start = h_sync + hbp
+  //input       [15: 0]             h_start, //h_start = h_sync + hbp + hlb
 );
 
 // tag COMPONENTs and SIGNALs declaration --------------------------------------------------------------------------
+  wire        [15 : 0]            Hor_total;
+  wire        [15 : 0]            Ver_total;
+  wire        [15 : 0]            Hor_start;
+  wire        [15 : 0]            Ver_start;
+
   reg         [2: 0]              op_start;
   wire                            h_end;
   wire                            v_end;
@@ -45,13 +54,13 @@ module timing_generator(
   wire                            HR_boundary;
   wire                            HL_boundary;
 
-  reg   ht_sync;
-  reg   vt_sync;
-  reg   h_de;
-  reg   v_de;
-  wire  t_de;
-  reg   [15:0]  h_cnt;
-  reg   [15:0]  v_cnt;
+  reg                             ht_sync;
+  reg                             vt_sync;
+  reg                             h_de;
+  reg                             v_de;
+  wire                            t_de;
+  reg         [15 : 0]            h_cnt;
+  reg         [15 : 0]            v_cnt;
 
 // tag OUTs assignment ---------------------------------------------------------------------------------------------
 assign Synco[26:24] = {vt_sync, ht_sync, t_de };
@@ -63,14 +72,19 @@ assign vcount[15: 0] = v_cnt;
 
 
 // tag COMBINATIONAL LOGIC -----------------------------------------------------------------------------------------
-  assign h_end = (h_cnt >= (h_total - 1'b1));
-  assign v_end = (v_cnt >= (v_total - 1'b1));
+  assign Hor_total = Hor_Addr_Time + Hor_Sync_Time + Hor_Back_Porch + Hor_Left_Border + Hor_Right_Border  + Hor_Front_Porch;
+  assign Ver_total = Ver_Addr_Time + Ver_Sync_Time + Ver_Back_Porch + Ver_Top_Border  + Ver_Bottom_Border + Ver_Front_Porch;
+  assign Hor_start = Hor_Sync_Time + Hor_Back_Porch + Hor_Left_Border;
+  assign Ver_start = Ver_Sync_Time + Ver_Back_Porch + Ver_Top_Border;
 
-  assign HR_boundary = (h_cnt == (h_start - 1'b1));
-  assign HL_boundary = (h_cnt == (h_start + h_size - 1'b1));
+  assign h_end = (h_cnt >= (Hor_total - 1'b1));
+  assign v_end = (v_cnt >= (Ver_total - 1'b1));
 
-  assign VT_boundary = (v_cnt == (v_start -1));
-  assign VB_boundary = (v_cnt == (v_start + v_size - 1'b1));
+  assign HR_boundary = (h_cnt == (Hor_start - 1'b1));
+  assign HL_boundary = (h_cnt == (Hor_start + Hor_Addr_Time - 1'b1));
+
+  assign VT_boundary = (v_cnt == (Ver_start -1));
+  assign VB_boundary = (v_cnt == (Ver_start + Ver_Addr_Time - 1'b1));
 
   assign t_de = v_de & h_de;
 
@@ -114,7 +128,7 @@ assign vcount[15: 0] = v_cnt;
     end else begin
       if (op_start[2:1] == 2'b01 || h_end) begin
         ht_sync <= 1'b1;
-      end else if (h_cnt == (h_sync - 1'b1)) begin
+      end else if (h_cnt == (Hor_Sync_Time - 1'b1)) begin
         ht_sync <= 1'b0;
       end
 
@@ -128,7 +142,7 @@ assign vcount[15: 0] = v_cnt;
     end else begin
       if (op_start[2:1] == 2'b01 || (v_end && h_end) ) begin
         vt_sync <= 1'b1;
-      end else if (v_cnt == (v_sync - 1'b1)  && h_end) begin
+      end else if (v_cnt == (Ver_Sync_Time - 1'b1)  && h_end) begin
         vt_sync <= 1'b0;
       end
 

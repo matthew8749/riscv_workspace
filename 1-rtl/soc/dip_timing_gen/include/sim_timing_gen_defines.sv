@@ -1,2 +1,0 @@
-`define IMG_640X480
-//`define IMG_1920X1080

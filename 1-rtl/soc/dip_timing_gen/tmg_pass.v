@@ -15,7 +15,7 @@
 /**********************************************************************/
 `timescale 1ns/1ps
 
-module pass(
+module tmg_pass(
 input             clk,
 input             rst_n,
 input      [26:0] DPi,
