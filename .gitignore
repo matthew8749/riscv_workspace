@@ -2,10 +2,12 @@
 # IDE, Editors & OS
 #===================================================================================================
 **.sublime-workspace
+*.sublime-project
 **/.editorconfig
 *ci
 *.github
 *.gitlab-ci
+*.gitlab-ci.yml
 .DS_Store
 
 #===================================================================================================
@@ -22,6 +24,9 @@
 **/1-rtl/soc/**/.git
 **/1-rtl/soc/dip_pulp_axi/scripts
 **/1-rtl/soc/dip_pulp_apb/scripts
+/1-rtl/soc/dip_pulp_apb_i2c
+/1-rtl/soc/dip_pulpino
+/1-rtl/soc/dip_alex_axi
 
 # FORK's  CI/CD & Configs in RTL
 /1-rtl/soc/dip_pulp_axi/.ci
@@ -61,7 +66,13 @@
 #===================================================================================================
 # Specify filepatterns you want git to ignore.  Misc / TODO
 #===================================================================================================
-**/5-todo/note.todo
+1-rtl/soc/soc_top/sync_xxxt.sv
+1-rtl/soc/soc_top/ma_sync_rst.sv
+1-rtl/soc/soc_top/ma_clk_div_n.sv
+1-rtl/soc/soc_top/axi_lite_to_apb_subsystem.sv
+1-rtl/soc/dip_timing_gen/include/sim_timing_gen_defines.svh
+
+/5-todo/note.todo
 
 #===================================================================================================
 # Global Output Artifacts (Simulation & Synthesis)
