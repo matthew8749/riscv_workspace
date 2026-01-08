@@ -1,6 +1,6 @@
 // +FHDR--------------------------------------------------------------------------------------------------------- //
 // Project ____________                                                                                           //
-// File name __________ alu.v                                                                                     //
+// File name __________ axi_like_handshake.sv                                                                     //
 // Creator ____________ Yan, Wei-Ting                                                                             //
 // Built Date _________ MMM-DD-YYYY                                                                               //
 // Function ___________                                                                                           //
@@ -14,90 +14,54 @@
 //3...........15..................35............................................................................. //
 `timescale 1ns/10ps
 
-module  alu (
-  input  wire                     rst_n,
-  input  wire                     clk,
-
-  input  wire   [ 7: 0]           val_a,
-  input  wire   [ 7: 0]           val_b,
-  input  wire   [ 7: 0]           val_c,
-  input  wire                     alu_wr_rdy,           // 我已準備好接資料
-  output wire                     alu_wr_ack,           // 回復"確認收到資料" (one-cycle pulse)
-
-  input  wire                     alu_rd_ack,           // 接收"確認收到資料" (one-cycle pulse)
-  output reg                      alu_rd_rdy,           // 下游準備好收資料
-
-  output wire   [16: 0]           alu_result
+module axi_like_handshake (
+  input  logic                    clk,
+  input  logic                    rst_n,
+  // Upstream (Input) Interface
+  input  logic                    valid_i,  // Upstream data valid
+  output logic                    ready_o,  // This module ready to receive
+  // Downstream (Output) Interface
+  output logic                    valid_o,  // This module data valid
+  input  logic                    ready_i  // Downstream ready to receive
 );
 
 // tag COMPONENTs and SIGNALs declaration --------------------------------------------------------------------------
-  reg [15: 0] xt_mul_ab;
-  reg [16: 0] xt_add_ab_c;
-  reg [7 : 0] xt_c_1t;
 
-  wire        rd_rdy_mul;
-  wire        wr_ack_add;
-
+  logic       buf_valid;          // Internal state register: tracks whether Buffer has valid data
+  //Handshake Transfer Enables (Combinational)
+  logic       w_en;               // Write enable: when upstream provides and we are ready
+  logic       r_en;               // Read enable: when we provide and downstream is ready
 // tag OUTs assignment ---------------------------------------------------------------------------------------------
-  assign  alu_result = xt_add_ab_c;
-
+assign valid_o = buf_valid;                                 // internal data exists
+assign ready_o = !buf_valid || (buf_valid && ready_i);      // empty or full but simultaneously being read
 // tag INs assignment ----------------------------------------------------------------------------------------------
-
 // tag COMBINATIONAL LOGIC -----------------------------------------------------------------------------------------
+//assign w_en = valid_i && ready_o;
+//assign r_en = valid_o && ready_i;
 
+assign w_en = valid_i && (!buf_valid || (buf_valid && ready_i));
+assign r_en = buf_valid && ready_i;
 // tag COMBINATIONAL PROCESS ---------------------------------------------------------------------------------------
 
 // tag SEQUENTIAL LOGIC --------------------------------------------------------------------------------------------
 // ***********************/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**
 //                       /**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/***
 // *********************/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/****
-axi_like_handshake u_rdy_ack_mul ( .valid_i(alu_wr_rdy), .ready_o(alu_wr_ack), .valid_o(rd_rdy_mul), .ready_i( wr_ack_add ), .rst_n ( rst_n ), .clk ( clk ));
-axi_like_handshake u_rdy_ack_add ( .valid_i(rd_rdy_mul), .ready_o(wr_ack_add), .valid_o(alu_rd_rdy), .ready_i( alu_rd_ack ), .rst_n ( rst_n ), .clk ( clk ));
-//rdy_ack_handshake u_rdy_ack_mul (.wr_rdy(alu_wr_rdy), .wr_ack(alu_wr_ack),   .rd_rdy(rd_rdy_mul), .rd_ack(wr_ack_add), .rst_n(rst_n), .clk(clk));
-//rdy_ack_handshake u_rdy_ack_add (.wr_rdy(rd_rdy_mul), .wr_ack(wr_ack_add),   .rd_rdy(alu_rd_rdy), .rd_ack(alu_rd_ack), .rst_n(rst_n), .clk(clk));
 
-// axi_buffer #(.DATA_WIDTH(1), .BUFFER_DEPTH(1)) u0_aw_handshake (
-//   .clk_i  (clk  ),
-//   .rst_ni (rst_n ),
-//   .valid_i(alu_wr_rdy),
-//   .ready_o(alu_wr_ack),
-//   .valid_o(rd_rdy_mul),
-//   .ready_i(wr_ack_add)
-// );
-// axi_buffer #(.DATA_WIDTH(1), .BUFFER_DEPTH(1)) u0_w_handshake (
-//   .clk_i  (clk  ),
-//   .rst_ni (rst_n ),
-//   .valid_i(rd_rdy_mul),
-//   .ready_o(wr_ack_add),
-//   .valid_o(alu_rd_rdy),
-//   .ready_i(alu_rd_ack)
-// );
-
-
-always @ (posedge clk or negedge rst_n) begin
+// State Register
+always_ff @(posedge clk or negedge rst_n) begin
   if (!rst_n) begin
-    xt_mul_ab <= 16'b0;
-    xt_c_1t   <= 8'b0;
+    buf_valid <= 1'b0;
   end else begin
-    if ( alu_wr_ack ) begin
-      xt_mul_ab <= val_a * val_b;
-      xt_c_1t   <= val_c;
+    if (w_en) begin               // Write priority: whenever write occurs, Buffer next state is full (1)
+      buf_valid <= 1'b1;
+    end else if (r_en) begin      // Read only: if no write but read occurs, Buffer next state is empty (0)
+      buf_valid <= 1'b0;
+    end else begin                // Idle: neither read nor write, maintain current state
+      buf_valid <= buf_valid;
     end
-
   end
 end
-
-always @ (posedge clk or negedge rst_n) begin
-  if (!rst_n) begin
-    xt_add_ab_c <= 17'b0;
-  end else begin
-    if ( wr_ack_add ) begin
-      xt_add_ab_c <= xt_mul_ab + xt_c_1t;
-    end
-
-  end
-end
-
 
 
 endmodule
