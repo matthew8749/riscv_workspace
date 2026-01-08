@@ -42,11 +42,11 @@ module ma_clks_group_gen #(
   input  wire                     REG_ICG_ON_I2C ,
   input  wire                     REG_ICG_ON_IMP ,
 
-  output wire                     G0_CPU_CLK,
-  output wire                     AXI_CLK,
-  output wire                     APB_CLK,
-  output wire                     I2C_CLK,
-  output wire                     IMP_CLK,
+  output wire                     G0_CPU_RST_N,     G0_CPU_CLK,
+  output wire                     AXI_RST_N   ,     AXI_CLK,
+  output wire                     APB_RST_N   ,     APB_CLK,
+  output wire                     I2C_RST_N   ,     I2C_CLK,
+  output wire                     IMP_RST_N   ,     IMP_CLK,
 
   output wire                     ICG_G0_CPU_CLK,
   output wire                     ICG_AXI_CLK,
@@ -132,6 +132,54 @@ ICG_posedge u1_ICG_AXI (.ck_in(AXI_CLK   ), .enable(REG_ICG_ON_AXI), .test(1'b0)
 ICG_posedge u2_ICG_APB (.ck_in(APB_CLK   ), .enable(REG_ICG_ON_APB), .test(1'b0), .ck_out(ICG_APB_CLK   ));
 ICG_posedge u3_ICG_I2C (.ck_in(I2C_CLK   ), .enable(REG_ICG_ON_I2C), .test(1'b0), .ck_out(ICG_I2C_CLK   ));
 ICG_posedge u4_ICG_IMP (.ck_in(IMP_CLK   ), .enable(REG_ICG_ON_IMP), .test(1'b0), .ck_out(ICG_IMP_CLK   ));
+
+
+// ************************************************************************************************************** //
+//   $$$$$$$\                                     $$\            $$$$$$\                                          //
+//   $$  __$$\                                    $$ |          $$  __$$\                                         //
+//   $$ |  $$ |  $$$$$$\    $$$$$$$\   $$$$$$\  $$$$$$\         $$ /  \__|  $$$$$$\   $$$$$$$\                    //
+//   $$$$$$$  | $$  __$$\  $$  _____| $$  __$$\ \_$$  _|        $$ |$$$$\  $$  __$$\  $$  __$$\                   //
+//   $$  __$$<  $$$$$$$$ | \$$$$$$\   $$$$$$$$ |  $$ |          $$ |\_$$ | $$$$$$$$ | $$ |  $$ |                  //
+//   $$ |  $$ | $$   ____|  \____$$\  $$   ____|  $$ |$$\       $$ |  $$ | $$   ____| $$ |  $$ |                  //
+//   $$ |  $$ | \$$$$$$$\  $$$$$$$  | \$$$$$$$\   \$$$$  |      \$$$$$$  | \$$$$$$$\  $$ |  $$ |                  //
+//   \__|  \__|  \_______| \_______/   \_______|   \____/        \______/   \_______| \__|  \__|                  //
+// ************************************************************************************************************** //
+
+ma_sync_rst u0_cpu_sync_rst (
+  .ASYNC_RST_N                    ( src_rst_n    ),
+  .CLK                            ( G0_CPU_CLK   ),
+  .TEST_MODE                      ( 1'b0         ),
+  .TEST_RST_N                     ( 1'b1         ),
+  .RST_N                          ( G0_CPU_RST_N )
+);
+ma_sync_rst u1_axi_sync_rst (
+  .ASYNC_RST_N                    ( src_rst_n    ),
+  .CLK                            ( AXI_CLK      ),
+  .TEST_MODE                      ( 1'b0         ),
+  .TEST_RST_N                     ( 1'b1         ),
+  .RST_N                          ( AXI_RST_N    )
+);
+ma_sync_rst u2_apb_sync_rst (
+  .ASYNC_RST_N                    ( src_rst_n    ),
+  .CLK                            ( APB_CLK      ),
+  .TEST_MODE                      ( 1'b0         ),
+  .TEST_RST_N                     ( 1'b1         ),
+  .RST_N                          ( APB_RST_N    )
+);
+ma_sync_rst u3_i2c_sync_rst (
+  .ASYNC_RST_N                    ( src_rst_n    ),
+  .CLK                            ( I2C_CLK      ),
+  .TEST_MODE                      ( 1'b0         ),
+  .TEST_RST_N                     ( 1'b1         ),
+  .RST_N                          ( I2C_RST_N    )
+);
+ma_sync_rst u4_imp_sync_rst (
+  .ASYNC_RST_N                    ( src_rst_n    ),
+  .CLK                            ( IMP_CLK      ),
+  .TEST_MODE                      ( 1'b0         ),
+  .TEST_RST_N                     ( 1'b1         ),
+  .RST_N                          ( IMP_RST_N    )
+);
 
 
 endmodule
