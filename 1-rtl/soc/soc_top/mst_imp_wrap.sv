@@ -24,18 +24,16 @@ module mst_imp_wrap
   //parameter              PITCH_WIDTH    = 9,
   parameter type  byte_t                = logic [7:0]  // DEPENDENT PARAMERETS, DO NOT OVERWRITE!
 )(
-  input  wire                           PoR_rst_n,
-  input  wire                           fw_rst_n,
-  input  wire                           sw_rst_n,
-  input  wire                           clk,
+  input  wire                           rst_n_IMP,
+  input  wire                           clk_IMP,
   AXI_LITE.Master                       mst_imp,     // AXI Master Interface
 
-  input logic       [ 7 : 0]            MST_U0_WR_IMP_HSIZE,
-  input logic       [ 7 : 0]            MST_U0_RD_IMP_HSIZE,
+  input logic       [15 : 0]            MST_U0_WR_IMP_HSIZE,
+  input logic       [15 : 0]            MST_U0_RD_IMP_HSIZE,
   input logic       [ 7 : 0]            MST_U0_WR_IMP_COOR_MINX,
   input logic       [ 7 : 0]            MST_U0_RD_IMP_COOR_MINX,
-  input logic       [ 7 : 0]            MST_U0_WR_IMP_VSIZE,
-  input logic       [ 7 : 0]            MST_U0_RD_IMP_VSIZE,
+  input logic       [15 : 0]            MST_U0_WR_IMP_VSIZE,
+  input logic       [15 : 0]            MST_U0_RD_IMP_VSIZE,
   input logic       [ 7 : 0]            MST_U0_WR_IMP_COOR_MINY,
   input logic       [ 7 : 0]            MST_U0_RD_IMP_COOR_MINY,
   input logic       [31 : 0]            MST_U0_WR_IMP_ADR_PITCH,
@@ -57,8 +55,8 @@ module mst_imp_wrap
 // *********************/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/****
 
 mst_imp_r_ch u0_mst_imp_r_ch (
-  .PoR_rst_n                      ( PoR_rst_n               ),
-  .clk                            ( clk                     ),
+  .rst_n_IMP                      ( rst_n_IMP               ),
+  .clk_IMP                        ( clk_IMP                 ),
   .mem_axi_arvalid                ( mst_imp.ar_valid        ),
   .mem_axi_arready                ( mst_imp.ar_ready        ),
   .mem_axi_araddr                 ( mst_imp.ar_addr         ),
@@ -66,8 +64,8 @@ mst_imp_r_ch u0_mst_imp_r_ch (
   .mem_axi_rvalid                 ( mst_imp.r_valid         ),
   .mem_axi_rready                 ( mst_imp.r_ready         ),
   .mem_axi_rdata                  ( mst_imp.r_data          ),
-  .IMP_HSIZE                      ( MST_U0_RD_IMP_HSIZE     ), //8'd4
-  .IMP_VSIZE                      ( MST_U0_RD_IMP_VSIZE     ), //8'd6
+  .IMP_HSIZE                      ( MST_U0_RD_IMP_HSIZE     ), //16'd4
+  .IMP_VSIZE                      ( MST_U0_RD_IMP_VSIZE     ), //16'd6
   .IMP_COOR_MINX                  ( MST_U0_RD_IMP_COOR_MINX ), //8'd0
   .IMP_COOR_MINY                  ( MST_U0_RD_IMP_COOR_MINY ), //8'd0
   .IMP_SRC_BADDR                  ( MST_U0_RD_IMP_SRC_BADDR ), // 32'h0010_0000
@@ -76,8 +74,8 @@ mst_imp_r_ch u0_mst_imp_r_ch (
 );
 
 mst_imp_w_ch u0_mst_imp_w_ch (
-  .rst_n                          ( PoR_rst_n               ),
-  .clk                            ( clk                     ),
+  .rst_n_IMP                      ( rst_n_IMP               ),
+  .clk_IMP                        ( clk_IMP                 ),
   .mem_axi_awvalid                ( mst_imp.aw_valid        ),
   .mem_axi_awready                ( mst_imp.aw_ready        ),
   .mem_axi_awaddr                 ( mst_imp.aw_addr         ),

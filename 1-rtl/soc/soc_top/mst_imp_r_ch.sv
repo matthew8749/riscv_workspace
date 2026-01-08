@@ -15,10 +15,8 @@
 `timescale 1ns/10ps
 
 module mst_imp_r_ch (
-  input  wire                     PoR_rst_n,
-  input  wire                     fw_rst_n,
-  input  wire                     sw_rst_n,
-  input  wire                     clk,
+  input  wire                     rst_n_IMP,
+  input  wire                     clk_IMP,
   // AXI4-lite master memory interface
 
   // AR
@@ -32,9 +30,9 @@ module mst_imp_r_ch (
   input  wire [31: 0]             mem_axi_rdata,
 
   // Task configuration
-  input  logic [ 7: 0]            IMP_HSIZE,                              // pixels per row     //default : 32
+  input  logic [15: 0]            IMP_HSIZE,                              // pixels per row     //default : 32
   input  logic [ 7: 0]            IMP_COOR_MINX,                          // start X (pixels)
-  input  logic [ 7: 0]            IMP_VSIZE,                              // rows               //default : 64
+  input  logic [15: 0]            IMP_VSIZE,                              // rows               //default : 64
   input  logic [ 7: 0]            IMP_COOR_MINY,                          // start Y (rows)
   input  logic                    IMP_ST,                                 // Start bit，1T start pulse
 
@@ -46,13 +44,13 @@ module mst_imp_r_ch (
 // tag COMPONENTs and SIGNALs declaration --------------------------------------------------------------------------
   reg                             ip_rst_n;
 
-  wire        [ 7: 0]             CNST_PXL_WIDTH;
-  wire        [ 7: 0]             CNST_PXL_HIGHT;
+  wire        [15: 0]             CNST_PXL_WIDTH;
+  wire        [15: 0]             CNST_PXL_HIGHT;
   wire        [ 7: 0]             CNST_PXL_X_STA;
   wire        [ 7: 0]             CNST_PXL_Y_STA;
-  wire        [ 8: 0]             CNST_PXL_X_END;
-  wire        [ 8: 0]             CNST_PXL_Y_END;
-  wire        [15: 0]             CNST_ALL_DSIZE;
+  wire        [15: 0]             CNST_PXL_X_END;
+  wire        [15: 0]             CNST_PXL_Y_END;
+  wire        [31: 0]             CNST_ALL_DSIZE;
 
   reg                             xt_processing;
   wire                            xt_all_proc_trg;
@@ -62,9 +60,9 @@ module mst_imp_r_ch (
   wire                            xt__r_ack;
 
   reg         [31: 0]             xt_line_base;
-  reg         [ 4: 0]             xt_xcnt;
+  reg         [31: 0]             xt_xcnt;
   wire                            xt_xcnt_end;
-  reg         [ 4: 0]             xt_ycnt;
+  reg         [31: 0]             xt_ycnt;
   wire                            xt_ycnt_end;
 
   reg         [ 1: 0]             xt_imp_st_dly;
@@ -116,8 +114,8 @@ assign xt__r_ack                  = mem_axi_rvalid  & mem_axi_rready;    // R ha
 // ***********************/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**
 //                       /**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/***
 // *********************/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/****
-always_ff @(posedge clk or negedge PoR_rst_n) begin
-  if (!PoR_rst_n) begin
+always_ff @ (posedge clk_IMP or negedge rst_n_IMP) begin
+  if (!rst_n_IMP) begin
     xt_imp_st_dly <= 2'b0;
   end else begin
     xt_imp_st_dly <= {xt_imp_st_dly[0], IMP_ST};
@@ -125,8 +123,8 @@ always_ff @(posedge clk or negedge PoR_rst_n) begin
   end
 end
 
-always_ff @(posedge clk or negedge PoR_rst_n) begin
-  if(~PoR_rst_n) begin
+always_ff @ (posedge clk_IMP or negedge rst_n_IMP) begin
+  if (!rst_n_IMP) begin
     xt_processing <= 1'b0;
   end else begin
     if (xt_all_proc_trg ) begin
@@ -138,8 +136,8 @@ always_ff @(posedge clk or negedge PoR_rst_n) begin
   end
 end
 
-always @ (posedge clk or negedge PoR_rst_n) begin
-  if (!PoR_rst_n) begin
+always @ (posedge clk_IMP or negedge rst_n_IMP) begin
+  if (!rst_n_IMP) begin
     xt_xcnt <= 'b0;
   end else begin
     if (xt_all_proc_trg || (xt_xcnt_end && xt_ycnt_end==1'b0 && xt_ar_ack) ) begin
@@ -151,9 +149,9 @@ always @ (posedge clk or negedge PoR_rst_n) begin
   end
 end
 
-always_ff @(posedge clk or negedge PoR_rst_n) begin
-  if (!PoR_rst_n) begin
-    xt_ycnt <= 8'b0;
+always_ff @ (posedge clk_IMP or negedge rst_n_IMP) begin
+  if (!rst_n_IMP) begin
+    xt_ycnt <= 'b0;
   end else begin
     if (xt_all_proc_trg) begin
       xt_ycnt <= CNST_PXL_Y_STA;
@@ -168,8 +166,8 @@ end
 // READ                  /**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/***
 // *********************/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/****
 //AR
-always @ (posedge clk or negedge PoR_rst_n) begin
-  if (!PoR_rst_n) begin
+always @ (posedge clk_IMP or negedge rst_n_IMP) begin
+  if (!rst_n_IMP) begin
     xt_axi_arvalid <= 1'b0;
   end else begin
     if (xt_all_proc_trg) begin
@@ -181,8 +179,8 @@ always @ (posedge clk or negedge PoR_rst_n) begin
   end
 end
 
-always @ (posedge clk or negedge PoR_rst_n) begin
-  if (!PoR_rst_n) begin
+always @ (posedge clk_IMP or negedge rst_n_IMP) begin
+  if (!rst_n_IMP) begin
     xt_line_base  <= 32'b0;
     xt_axi_araddr <= 32'b0;
     xt_axi_arprot <= 3'b000;
@@ -206,8 +204,8 @@ always @ (posedge clk or negedge PoR_rst_n) begin
 end
 
 // R
-always @ (posedge clk or negedge PoR_rst_n) begin
-  if (!PoR_rst_n) begin
+always @ (posedge clk_IMP or negedge rst_n_IMP) begin
+  if (!rst_n_IMP) begin
     xt_axi_rdata   <=  32'b0;
   end else begin
     if (xt__r_ack) begin
@@ -227,13 +225,13 @@ end
 // dbg                   /**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/***
 // *********************/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/****
 // synopsys translate_off
-  reg         [11: 0]             xt_cnt_rdata;
+  reg         [31: 0]             xt_cnt_rdata;
 
   assign      CNST_ALL_DSIZE      = IMP_HSIZE * IMP_VSIZE;
   assign      imp_done            = (xt_cnt_rdata >= CNST_ALL_DSIZE);
 
-  always @ (posedge clk or negedge PoR_rst_n) begin
-    if (!PoR_rst_n) begin
+  always @ (posedge clk_IMP or negedge rst_n_IMP) begin
+    if (!rst_n_IMP) begin
       xt_cnt_rdata   <=  12'b0;
     end else begin
       if (xt__r_ack && (xt_cnt_rdata <= CNST_ALL_DSIZE)) begin

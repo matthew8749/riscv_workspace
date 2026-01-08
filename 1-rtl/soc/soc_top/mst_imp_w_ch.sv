@@ -15,8 +15,8 @@
 `timescale 1ns/10ps
 
 module mst_imp_w_ch (
-  input  wire                     rst_n,
-  input  wire                     clk,
+  input  wire                     rst_n_IMP,
+  input  wire                     clk_IMP,
   // AXI4-lite master memory interface
 
   // AW
@@ -30,14 +30,14 @@ module mst_imp_w_ch (
   output wire [31: 0]             mem_axi_wdata,
   output wire [ 3: 0]             mem_axi_wstrb,
 
-  input  wire [ 2: 0]             mem_axi_bresp,
+  input  wire [ 1: 0]             mem_axi_bresp,
   input  wire                     mem_axi_bvalid,
   output wire                     mem_axi_bready,
 
   // Task configuration
-  input  wire [ 7: 0]             IMP_HSIZE,                              // pixels per row     //default : 32
+  input  wire [15: 0]             IMP_HSIZE,                              // pixels per row     //default : 32
   input  wire [ 7: 0]             IMP_COOR_MINX,                          // stawt X (pixels)
-  input  wire [ 7: 0]             IMP_VSIZE,                              // rows               //default : 64
+  input  wire [15: 0]             IMP_VSIZE,                              // rows               //default : 64
   input  wire [ 7: 0]             IMP_COOR_MINY,                          // stawt Y (rows)
   input  wire                     IMP_ST,                                 // Stawt bit，1T stawt pulse
 
@@ -47,12 +47,12 @@ module mst_imp_w_ch (
 
 );
 // tag COMPONENTs and SIGNALs declawation --------------------------------------------------------------------------
-  wire        [ 7: 0]             CNST_PXL_WIDTH;
-  wire        [ 7: 0]             CNST_PXL_HIGHT;
+  wire        [15: 0]             CNST_PXL_WIDTH;
+  wire        [15: 0]             CNST_PXL_HIGHT;
   wire        [ 7: 0]             CNST_PXL_X_STA;
   wire        [ 7: 0]             CNST_PXL_Y_STA;
-  wire        [ 8: 0]             CNST_PXL_X_END;
-  wire        [ 8: 0]             CNST_PXL_Y_END;
+  wire        [15: 0]             CNST_PXL_X_END;
+  wire        [15: 0]             CNST_PXL_Y_END;
   wire        [15: 0]             CNST_ALL_DSIZE;
 
   reg                             xt_processing;
@@ -63,9 +63,9 @@ module mst_imp_w_ch (
   wire                            xt__w_ack;
 
   reg         [31: 0]             xt_line_base;
-  reg         [ 4: 0]             xt_xcnt;
+  reg         [31: 0]             xt_xcnt;
   wire                            xt_xcnt_end;
-  reg         [ 4: 0]             xt_ycnt;
+  reg         [31: 0]             xt_ycnt;
   wire                            xt_ycnt_end;
 
   reg         [ 1: 0]             xt_imp_st_dly;
@@ -126,8 +126,8 @@ assign xt__w_ack                  = mem_axi_wvalid && mem_axi_wready;    // R ha
 // ***********************/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**
 //                       /**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/***
 // *********************/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/****
-always_ff @(posedge clk or negedge rst_n) begin
-  if (!rst_n) begin
+always_ff @(posedge clk_IMP or negedge rst_n_IMP) begin
+  if (!rst_n_IMP) begin
     xt_imp_st_dly <= 2'b0;
   end else begin
     xt_imp_st_dly <= {xt_imp_st_dly[0], IMP_ST};
@@ -135,8 +135,8 @@ always_ff @(posedge clk or negedge rst_n) begin
   end
 end
 
-always_ff @(posedge clk or negedge rst_n) begin
-  if(~rst_n) begin
+always_ff @(posedge clk_IMP or negedge rst_n_IMP) begin
+  if(~rst_n_IMP) begin
     xt_processing <= 1'b0;
   end else begin
     if (xt_all_proc_trg ) begin
@@ -148,8 +148,8 @@ always_ff @(posedge clk or negedge rst_n) begin
   end
 end
 
-always @ (posedge clk or negedge rst_n) begin
-  if (!rst_n) begin
+always @ (posedge clk_IMP or negedge rst_n_IMP) begin
+  if (!rst_n_IMP) begin
     xt_xcnt <= 'b0;
   end else begin
     if (xt_all_proc_trg || (xt_xcnt_end && xt_ycnt_end==1'b0 && xt_aw_ack) ) begin
@@ -161,9 +161,9 @@ always @ (posedge clk or negedge rst_n) begin
   end
 end
 
-always_ff @(posedge clk or negedge rst_n) begin
-  if (!rst_n) begin
-    xt_ycnt <= 8'b0;
+always_ff @(posedge clk_IMP or negedge rst_n_IMP) begin
+  if (!rst_n_IMP) begin
+    xt_ycnt <= 32'b0;
   end else begin
     if (xt_all_proc_trg) begin
       xt_ycnt <= CNST_PXL_Y_STA;
@@ -178,8 +178,8 @@ end
 // READ                  /**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/***
 // *********************/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/****
 //aw
-always @ (posedge clk or negedge rst_n) begin
-  if (!rst_n) begin
+always @ (posedge clk_IMP or negedge rst_n_IMP) begin
+  if (!rst_n_IMP) begin
     xt_axi_awvalid <= 1'b0;
   end else begin
     if (xt_all_proc_trg) begin
@@ -191,8 +191,8 @@ always @ (posedge clk or negedge rst_n) begin
   end
 end
 
-always @ (posedge clk or negedge rst_n) begin
-  if (!rst_n) begin
+always @ (posedge clk_IMP or negedge rst_n_IMP) begin
+  if (!rst_n_IMP) begin
     xt_line_base  <= 32'b0;
     xt_axi_awaddr <= 32'b0;
     xt_axi_awprot <= 3'b000;
@@ -217,8 +217,8 @@ end
 
 // W
 
-always @ (posedge clk or negedge rst_n) begin
-  if (!rst_n) begin
+always @ (posedge clk_IMP or negedge rst_n_IMP) begin
+  if (!rst_n_IMP) begin
     xt_axi_wdata   <=  32'b0;
   end else begin
     if (xt__w_ack) begin
