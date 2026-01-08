@@ -83,6 +83,8 @@ module axi_lite_memory #(
 // ***********************/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**
 //                       /**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/***
 // *********************/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/****
+//|xt_wr_addr[31:15] ==
+
 
 always @ (posedge clk or negedge rst_n) begin
   if(~rst_n) begin
@@ -113,7 +115,7 @@ end
 Xilinx_SRAM1R1W_32X32768 u0_SRAM1R1W_32X32768 (
   .clka ( clk           ),
   .ena  ( xt_aw_w_vld   ),
-  .wea  ( xt_aw_w_vld   ),
+  .wea  ( {4{xt_aw_w_vld}} ),
   .addra( xt_wr_addr    ),
   .dina ( xt_wr_data    ),
 
@@ -124,23 +126,45 @@ Xilinx_SRAM1R1W_32X32768 u0_SRAM1R1W_32X32768 (
   .doutb( s_r_data   )
 );
 
-rdy_ack_handshake u0_aw_handshake (
+axi_like_handshake u0_aw_handshake (
   .rst_n      ( rst_n       ),
   .clk        ( clk         ),
-  .wr_rdy     ( s_aw_valid  ),
-  .wr_ack     ( s_aw_ready  ),
-  .rd_rdy     ( xt_aw_valid ),
-  .rd_ack     ( xt_aw_w_vld )
+  .valid_i    ( s_aw_valid  ),
+  .ready_o    ( s_aw_ready  ),
+
+  .valid_o    ( xt_aw_valid ),
+  .ready_i    ( xt_aw_w_vld )
 );
 
-rdy_ack_handshake u0_w_handshake (
+axi_like_handshake u0_w_handshake (
   .rst_n      ( rst_n       ),
   .clk        ( clk         ),
-  .wr_rdy     ( s_w_valid   ),
-  .wr_ack     ( s_w_ready   ),
-  .rd_rdy     ( xt_w_valid  ),
-  .rd_ack     ( xt_aw_w_vld )
+  .valid_i    ( s_w_valid   ),
+  .ready_o    ( s_w_ready   ),
+  .valid_o    ( xt_w_valid  ),
+  .ready_i    ( xt_aw_w_vld )
 );
+
+
+//rdy_ack_handshake u0_aw_handshake (
+//  .rst_n      ( rst_n       ),
+//  .clk        ( clk         ),
+//  .wr_rdy     ( s_aw_valid  ),
+//  .wr_ack     ( s_aw_ready  ),
+//  .rd_rdy     ( xt_aw_valid ),
+//  .rd_ack     ( xt_aw_w_vld )
+//);
+//
+//rdy_ack_handshake u0_w_handshake (
+//  .rst_n      ( rst_n       ),
+//  .clk        ( clk         ),
+//  .wr_rdy     ( s_w_valid   ),
+//  .wr_ack     ( s_w_ready   ),
+//  .rd_rdy     ( xt_w_valid  ),
+//  .rd_ack     ( xt_aw_w_vld )
+//);
+
+
 
 
 

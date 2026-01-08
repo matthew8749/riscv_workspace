@@ -10,8 +10,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "reg.soc.h"
-
+#include "reg.soc.h"  // sim_soc/firmware/reg.soc.h
 
 // irq.c
 uint32_t *irq(uint32_t *regs, uint32_t irqs);
