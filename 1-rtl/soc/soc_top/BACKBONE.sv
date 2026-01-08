@@ -80,10 +80,12 @@ module BACKBONE
     };
 
     localparam rule_t [xbar_cfg.NoAddrRules-1:0] AXI_AddrMap = '{
-      '{idx: `SOC_MEM_MAP_AXI_RAM0_ID,  start_addr: `SOC_MEM_MAP_AXI_RAM0_START_ADDR,  end_addr: `SOC_MEM_MAP_AXI_RAM0_END_ADDR  },  /* RAM0  : 32'h0000_0000 ~ 32'h0001_FFFF */
-      '{idx: `SOC_MEM_MAP_AXI_RAM1_ID,  start_addr: `SOC_MEM_MAP_AXI_RAM1_START_ADDR,  end_addr: `SOC_MEM_MAP_AXI_RAM1_END_ADDR  },  /* RAM1  : 32'h0010_0000 ~ 32'h0011_FFFF */
-      '{idx: `SOC_MEM_MAP_AXI_REGF0_ID, start_addr: `SOC_MEM_MAP_AXI_REGF0_START_ADDR, end_addr: `SOC_MEM_MAP_AXI_REGF0_END_ADDR },  /* REGF0 : 32'h0012_0000 ~ 32'h0012_FFFF */
-      '{idx: `SOC_MEM_MAP_AXI_APB_ID,   start_addr: `SOC_MEM_MAP_AXI_APB_START_ADDR,   end_addr: `SOC_MEM_MAP_AXI_APB_END_ADDR   }   /* APB   : 32'h0013_0000 ~ 32'h0013_FFFF */
+/* 0 */ '{idx: `SOC_MEM_MAP_AXI_ROM0_ID,  start_addr: `SOC_MEM_MAP_AXI_ROM0_START_ADDR,  end_addr: `SOC_MEM_MAP_AXI_ROM0_END_ADDR  },  /* ROM0  : 32'h0000_0000 ~ 32'h0001_FFFF */
+/* 1 */ '{idx: `SOC_MEM_MAP_AXI_REGF0_ID, start_addr: `SOC_MEM_MAP_AXI_REGF0_START_ADDR, end_addr: `SOC_MEM_MAP_AXI_REGF0_END_ADDR },  /* REGF0 : 32'h0012_0000 ~ 32'h0012_FFFF */
+/* 2 */ '{idx: `SOC_MEM_MAP_AXI_RAM1_ID,  start_addr: `SOC_MEM_MAP_AXI_RAM1_START_ADDR,  end_addr: `SOC_MEM_MAP_AXI_RAM1_END_ADDR  },  /* RAM1  : 32'h0010_0000 ~ 32'h0011_FFFF */
+/* 3 */ '{idx: `SOC_MEM_MAP_AXI_IMPI_ID,  start_addr: `SOC_MEM_MAP_AXI_IMPI_START_ADDR,  end_addr: `SOC_MEM_MAP_AXI_IMPI_END_ADDR  },  /* IMPI  : 32'h0100_0000 ~ 32'h011F_FFFF */
+/* 4 */// '{idx: `SOC_MEM_MAP_AXI_IMPO_ID,  start_addr: `SOC_MEM_MAP_AXI_IMPO_START_ADDR,  end_addr: `SOC_MEM_MAP_AXI_IMPO_END_ADDR  },  /* IMPO  : 32'h0120_0000 ~ 32'h013F_FFFF */
+/* 3 */ '{idx: `SOC_MEM_MAP_AXI_APB_ID,   start_addr: `SOC_MEM_MAP_AXI_APB_START_ADDR,   end_addr: `SOC_MEM_MAP_AXI_APB_END_ADDR   }   /* APB   : 32'h0013_0000 ~ 32'h0013_FFFF */
     };
 
   // apb configurationS
@@ -160,20 +162,20 @@ axi_lite_to_apb_intf #(
   .PipelineResponse               ( PipelineResponse   ), // Pipeline response path
   .rule_t                         ( rule_t             )  // Address Decoder rule from `common_cells`  // Has to be the same width as axi addr
 ) u0_axi_lite_to_apb_intf (
-  .rst_ni                         ( PRSTnMS_PCLK     ),
-  .clk_i                          ( PCLKMST_PCLK     ),
-  .slv                            ( slave[3]         ),  // Connect to the last port of Xbar !!!
-  .paddr_o                        ( apb_paddr_o      ),  // type is as same as AXI4-Lite
-  .pprot_o                        ( apb_pprot_o      ),  // type is as same as AXI4-Lite
-  .pselx_o                        ( apb_pselx_o      ),
-  .penable_o                      ( apb_penable_o    ),
-  .pwrite_o                       ( apb_pwrite_o     ),
-  .pwdata_o                       ( apb_pwdata_o     ),  // type is as same as AXI4-Lite
-  .pstrb_o                        ( apb_pstrb_o      ),  // type is as same as AXI4-Lite
-  .pready_i                       ( apb_pready_i     ),
-  .prdata_i                       ( apb_prdata_i     ),
-  .pslverr_i                      ( apb_pslverr_i    ),
-  .addr_map_i                     ( APB_AddrMap      )
+  .rst_ni                         ( PRSTnMS_PCLK             ),
+  .clk_i                          ( PCLKMST_PCLK             ),
+  .slv                            ( slave[`SOC_MEM_MAP_AXI_APB_ID] ),  // Connect to the last port of Xbar !!!
+  .paddr_o                        ( apb_paddr_o              ),  // type is as same as AXI4-Lite
+  .pprot_o                        ( apb_pprot_o              ),  // type is as same as AXI4-Lite
+  .pselx_o                        ( apb_pselx_o              ),
+  .penable_o                      ( apb_penable_o            ),
+  .pwrite_o                       ( apb_pwrite_o             ),
+  .pwdata_o                       ( apb_pwdata_o             ),  // type is as same as AXI4-Lite
+  .pstrb_o                        ( apb_pstrb_o              ),  // type is as same as AXI4-Lite
+  .pready_i                       ( apb_pready_i             ),
+  .prdata_i                       ( apb_prdata_i             ),
+  .pslverr_i                      ( apb_pslverr_i            ),
+  .addr_map_i                     ( APB_AddrMap              )
 );
 
 

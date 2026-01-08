@@ -16,6 +16,7 @@
 // *********************/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/****
 $RTL_ROOT/macro/bhvr/ram/Xilinx_SRAM1R1W_32X32768/blk_mem_gen_v8_4.v
 $RTL_ROOT/macro/bhvr/ram/Xilinx_SRAM1R1W_32X32768/Xilinx_SRAM1R1W_32X32768.v
+$RTL_ROOT/macro/bhvr/ram/Xilinx_SRAM1R1W_32X131072/Xilinx_SRAM1R1W_32X131072.v
 // ***********************/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**
 // pulp_common_cells     /**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/***
 // *********************/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/****
@@ -303,7 +304,7 @@ $RTL_ROOT/soc/dip_rdy_ack/alu_cop.v
 +incdir+$RTL_ROOT/soc/soc_top/include
 +incdir+$RTL_ROOT/soc/soc_top/rtl/pulp_include
 
-
+$RTL_ROOT/soc/dip_pulpino/ips/axi/axi_slice/axi_buffer.sv
 $RTL_ROOT/share/tb_clk_gen.v
 $RTL_ROOT/soc/soc_top/print.sv
 $RTL_ROOT/soc/soc_top/sync_xxxt.sv
@@ -312,6 +313,7 @@ $RTL_ROOT/soc/soc_top/ma_clk_div_n.sv
 $RTL_ROOT/soc/soc_top/ma_sync_rst.sv
 $RTL_ROOT/soc/soc_top/ma_clks_group_gen.sv
 $RTL_ROOT/soc/soc_top/axi_lite_memory.sv
+$RTL_ROOT/soc/soc_top/axi_lite_imp_memory.sv
 $RTL_ROOT/soc/soc_top/mst_imp_r_ch.sv
 $RTL_ROOT/soc/soc_top/mst_imp_w_ch.sv
 $RTL_ROOT/soc/soc_top/mst_imp_wrap.sv

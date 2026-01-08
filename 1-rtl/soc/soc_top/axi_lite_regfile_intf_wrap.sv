@@ -29,12 +29,12 @@ module axi_lite_reg_intf_wrap #(
   //output byte_t [REG_NUM_BYTE-1:0]  reg_q_rdat,
   AXI_LITE.Slave                    slv,
 
-  output logic  [ 7 : 0]            MST_U0_WR_IMP_HSIZE,
-  output logic  [ 7 : 0]            MST_U0_RD_IMP_HSIZE,
+  output logic  [15 : 0]            MST_U0_WR_IMP_HSIZE,
+  output logic  [15 : 0]            MST_U0_RD_IMP_HSIZE,
   output logic  [ 7 : 0]            MST_U0_WR_IMP_COOR_MINX,
   output logic  [ 7 : 0]            MST_U0_RD_IMP_COOR_MINX,
-  output logic  [ 7 : 0]            MST_U0_WR_IMP_VSIZE,
-  output logic  [ 7 : 0]            MST_U0_RD_IMP_VSIZE,
+  output logic  [15 : 0]            MST_U0_WR_IMP_VSIZE,
+  output logic  [15 : 0]            MST_U0_RD_IMP_VSIZE,
   output logic  [ 7 : 0]            MST_U0_WR_IMP_COOR_MINY,
   output logic  [ 7 : 0]            MST_U0_RD_IMP_COOR_MINY,
   output logic  [31 : 0]            MST_U0_WR_IMP_ADR_PITCH,
@@ -56,27 +56,27 @@ module axi_lite_reg_intf_wrap #(
   localparam  axi_addr_t EndAddr   =  axi_addr_t'(StartAddr + REG_NUM_BYTE + REG_NUM_BYTE/5);
 
   localparam  byte_t [REG_NUM_BYTE-1:0] RegRstVal  = '0;
-  localparam  PITCH_SIZE                           = 9;
+  //localparam  PITCH_SIZE                           = 9;
 
   byte_t      [REG_NUM_BYTE-1:0]  reg_q_o;
 // tag OUTs assignment ---------------------------------------------------------------------------------------------
 // tag INs assignment ----------------------------------------------------------------------------------------------
 // tag COMBINATIONAL LOGIC -----------------------------------------------------------------------------------------
-  assign MST_U0_WR_IMP_DST_BADDR  = {reg_q_o[3],  reg_q_o[2],  reg_q_o[1],  reg_q_o[0] }; //32'b0  0x0012_0003 ~ 0x0012_0000
-  assign MST_U0_WR_IMP_ADR_PITCH  = {reg_q_o[7],  reg_q_o[6],  reg_q_o[5],  reg_q_o[4] }; //9'd16  0x0012_0007 ~ 0x0012_0004
-  assign MST_U0_WR_IMP_HSIZE      =  reg_q_o[8];                                                   //8'd4   0x0012_0008
-  assign MST_U0_WR_IMP_VSIZE      =  reg_q_o[9];                                                   //8'd6   0x0012_0009
-  assign MST_U0_WR_IMP_COOR_MINX  =  reg_q_o[10];                                                  //8'd0   0x0012_000A
-  assign MST_U0_WR_IMP_COOR_MINY  =  reg_q_o[11];                                                  //8'd0   0x0012_000B
-  assign MST_U0_WR_IMP_ST         =  reg_q_o[12];                                                  //       0x0012_000C
+  assign MST_U0_WR_IMP_DST_BADDR  = {reg_q_o[3],  reg_q_o[2],  reg_q_o[1],  reg_q_o[0] }; //32'b0  0x0010_0003 ~ 0x0010_0000
+  assign MST_U0_WR_IMP_ADR_PITCH  = {reg_q_o[7],  reg_q_o[6],  reg_q_o[5],  reg_q_o[4] }; //9'd16  0x0010_0007 ~ 0x0010_0004
+  assign MST_U0_WR_IMP_HSIZE      = {reg_q_o[9],  reg_q_o[8]};                            //16'd4  0x0010_0009 ~ 0x0010_0008
+  assign MST_U0_WR_IMP_VSIZE      = {reg_q_o[11],  reg_q_o[10]};                          //16'd6  0x0010_000B ~ 0x0010_000A
+  assign MST_U0_WR_IMP_COOR_MINX  =  reg_q_o[12];                                         //8'd0   0x0010_000C
+  assign MST_U0_WR_IMP_COOR_MINY  =  reg_q_o[13];                                         //8'd0   0x0010_000D
+  assign MST_U0_WR_IMP_ST         =  reg_q_o[14];                                         //       0x0010_000E
 
-  assign MST_U0_RD_IMP_SRC_BADDR  = {reg_q_o[19], reg_q_o[18], reg_q_o[17], reg_q_o[16]}; //32'b0  0x0012_0013 ~ 0x0012_0010
-  assign MST_U0_RD_IMP_ADR_PITCH  = {reg_q_o[23], reg_q_o[22], reg_q_o[21], reg_q_o[20]}; //9'd16  0x0012_0017 ~ 0x0012_0014
-  assign MST_U0_RD_IMP_HSIZE      =  reg_q_o[24];                                                  //8'd4   0x0012_0018
-  assign MST_U0_RD_IMP_VSIZE      =  reg_q_o[25];                                                  //8'd6   0x0012_0019
-  assign MST_U0_RD_IMP_COOR_MINX  =  reg_q_o[26];                                                  //8'd0   0x0012_001A
-  assign MST_U0_RD_IMP_COOR_MINY  =  reg_q_o[27];                                                  //8'd0   0x0012_001B
-  assign MST_U0_RD_IMP_ST         =  reg_q_o[28];                                                  //       0x0012_001C
+  assign MST_U0_RD_IMP_SRC_BADDR  = {reg_q_o[19], reg_q_o[18], reg_q_o[17], reg_q_o[16]}; //32'b0  0x0010_0013 ~ 0x0010_0010
+  assign MST_U0_RD_IMP_ADR_PITCH  = {reg_q_o[23], reg_q_o[22], reg_q_o[21], reg_q_o[20]}; //9'd16  0x0010_0017 ~ 0x0010_0014
+  assign MST_U0_RD_IMP_HSIZE      = {reg_q_o[25], reg_q_o[24]} ;                          //16'd4  0x0010_0019 ~ 0x0010_0018
+  assign MST_U0_RD_IMP_VSIZE      = {reg_q_o[27], reg_q_o[26]} ;                          //16'd6  0x0010_001B ~ 0x0010_001A
+  assign MST_U0_RD_IMP_COOR_MINX  =  reg_q_o[28];                                         // 8'd0  0x0010_001C
+  assign MST_U0_RD_IMP_COOR_MINY  =  reg_q_o[29];                                         // 8'd0  0x0010_001D
+  assign MST_U0_RD_IMP_ST         =  reg_q_o[30];                                         //       0x0010_001E
 // tag COMBINATIONAL PROCESS ---------------------------------------------------------------------------------------
 // tag SEQUENTIAL LOGIC --------------------------------------------------------------------------------------------
 // ***********************/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**
@@ -136,7 +136,7 @@ axi_lite_regfile_intf #(
   .wr_active_o                    ( /*wr_active*/ ),
   .rd_active_o                    ( /*rd_active*/ ),
   .reg_d_i                        ( {REG_NUM_BYTE{8'h00}}/*reg_d*/     ),
-  .reg_load_i                     ( {REG_NUM_BYTE{8'h00}}/*reg_load*/  ),
+  .reg_load_i                     ( {REG_NUM_BYTE{1'b0}} /*reg_load*/  ),
   .reg_q_o                        ( reg_q_o     )
 );
 

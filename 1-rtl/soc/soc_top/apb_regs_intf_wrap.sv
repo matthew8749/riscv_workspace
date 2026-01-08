@@ -15,7 +15,7 @@
 `timescale 1ns/10ps
 `include "apb/assign.svh"
 `include "apb/typedef.svh"
-
+`include "include/Global_define.svh"
 
 module apb_regs_intf_wrap
 #(
@@ -42,27 +42,27 @@ module apb_regs_intf_wrap
   output logic [APB_DATA_WIDTH-1:0]  apb_reg_prdata,
   output logic                       apb_reg_pslverr,
 
-  output wire [ 3: 0]             REG_CLK_DIV_CPU ,               // fw : 0x0013_0000
-  output wire                     REG_CLK_TOG_CPU ,               // fw : 0x0013_0004
-  output wire                     REG_CLK_CKEN_CPU,               // fw : 0x0013_0004
-  output wire [ 3: 0]             REG_CLK_DIV_AXI ,               // fw : 0x0013_0000
-  output wire                     REG_CLK_TOG_AXI ,               // fw : 0x0013_0004
-  output wire                     REG_CLK_CKEN_AXI,               // fw : 0x0013_0004
-  output wire [ 3: 0]             REG_CLK_DIV_APB ,               // fw : 0x0013_0000
-  output wire                     REG_CLK_TOG_APB ,               // fw : 0x0013_0004
-  output wire                     REG_CLK_CKEN_APB,               // fw : 0x0013_0004
-  output wire [ 3: 0]             REG_CLK_DIV_I2C ,               // fw : 0x0013_0000
-  output wire                     REG_CLK_TOG_I2C ,               // fw : 0x0013_0004
-  output wire                     REG_CLK_CKEN_I2C,               // fw : 0x0013_0004
-  output wire [ 3: 0]             REG_CLK_DIV_IMP ,               // fw : 0x0013_0000
-  output wire                     REG_CLK_TOG_IMP ,               // fw : 0x0013_0004
-  output wire                     REG_CLK_CKEN_IMP,               // fw : 0x0013_0004
+  output wire [ 3: 0]             REG_CLK_DIV_CPU ,               // fw : 0x0011_0000
+  output wire                     REG_CLK_TOG_CPU ,               // fw : 0x0011_0004
+  output wire                     REG_CLK_CKEN_CPU,               // fw : 0x0011_0004
+  output wire [ 3: 0]             REG_CLK_DIV_AXI ,               // fw : 0x0011_0000
+  output wire                     REG_CLK_TOG_AXI ,               // fw : 0x0011_0004
+  output wire                     REG_CLK_CKEN_AXI,               // fw : 0x0011_0004
+  output wire [ 3: 0]             REG_CLK_DIV_APB ,               // fw : 0x0011_0000
+  output wire                     REG_CLK_TOG_APB ,               // fw : 0x0011_0004
+  output wire                     REG_CLK_CKEN_APB,               // fw : 0x0011_0004
+  output wire [ 3: 0]             REG_CLK_DIV_I2C ,               // fw : 0x0011_0000
+  output wire                     REG_CLK_TOG_I2C ,               // fw : 0x0011_0004
+  output wire                     REG_CLK_CKEN_I2C,               // fw : 0x0011_0004
+  output wire [ 3: 0]             REG_CLK_DIV_IMP ,               // fw : 0x0011_0000
+  output wire                     REG_CLK_TOG_IMP ,               // fw : 0x0011_0004
+  output wire                     REG_CLK_CKEN_IMP,               // fw : 0x0011_0004
 
-  output wire                     REG_ICG_ON_CPU,                 // fw : 0x0013_0008
-  output wire                     REG_ICG_ON_AXI,                 // fw : 0x0013_0008
-  output wire                     REG_ICG_ON_APB,                 // fw : 0x0013_0008
-  output wire                     REG_ICG_ON_I2C,                 // fw : 0x0013_0008
-  output wire                     REG_ICG_ON_IMP                  // fw : 0x0013_0008
+  output wire                     REG_ICG_ON_CPU,                 // fw : 0x0011_0008
+  output wire                     REG_ICG_ON_AXI,                 // fw : 0x0011_0008
+  output wire                     REG_ICG_ON_APB,                 // fw : 0x0011_0008
+  output wire                     REG_ICG_ON_I2C,                 // fw : 0x0011_0008
+  output wire                     REG_ICG_ON_IMP                  // fw : 0x0011_0008
 
 );
 
@@ -78,8 +78,8 @@ module apb_regs_intf_wrap
   localparam  REG_CLK_GRP_DCFG_ID = 1;
   localparam  REG_CLK_GATE_ON_ID  = 2;
 
-  localparam     [APB_ADDR_WIDTH-1 : 0] APB_BASE_ADDR = 32'h0013_0000;
-  localparam bit [NO_APB_REGS-1    : 0] READ_ONLY     = 32'h0000_0000;                               // !!  {NO_APB_REGS}'h______
+  localparam     [APB_ADDR_WIDTH-1 : 0] APB_BASE_ADDR = `SOC_MEM_MAP_AXI_APB_START_ADDR;  // 0x0011_0000
+  localparam bit [NO_APB_REGS-1    : 0] READ_ONLY     = 32'h0000_0000;                    // !!  {NO_APB_REGS}'h______
 
   typedef logic [APB_ADDR_WIDTH-1:0] addr_t;
   typedef logic [APB_DATA_WIDTH-1:0] data_t;
