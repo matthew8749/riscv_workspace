@@ -1,6 +1,6 @@
 module axi4_memory #(
   parameter AXI_TEST = 0,
-  parameter VERBOSE = 0
+  parameter VERBOSE  = 0
 ) (
   /* verilator lint_off MULTIDRIVEN */
 
