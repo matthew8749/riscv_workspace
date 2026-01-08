@@ -33,7 +33,7 @@ module picorv_x_pulp_soc #(
   localparam int unsigned AXI_ADDR_WIDTH = 32'd32;  // Axi Address Width
   localparam int unsigned AXI_DATA_WIDTH = 32'd32;  // Axi Data Width
   localparam int unsigned NO_AXI_MASTERS = 32'd2;   // How many Axi Masters there are
-  localparam int unsigned NO_AXI_SLAVES  = 32'd3;   // How many Axi Slaves  there are
+  localparam int unsigned NO_AXI_SLAVES  = 32'd4;   // How many Axi Slaves  there are
                                                    // BUT!! APB Bridge is not included because it is enclosed within it.
   localparam int unsigned AXI_STRB_WIDTH =  AXI_DATA_WIDTH / 32'd8;
   //apb
@@ -78,18 +78,14 @@ module picorv_x_pulp_soc #(
   logic                           I2C_CLK     ;
   logic                           IMP_CLK     ;
 
-
-
-
-
   // axi lite reg
   byte_t [AXI_REG_NUM_BYTES-1: 0] reg_q_rdat;
-  logic  [ 7 : 0]                 MST_U0_WR_IMP_HSIZE;
-  logic  [ 7 : 0]                 MST_U0_RD_IMP_HSIZE;
+  logic  [15 : 0]                 MST_U0_WR_IMP_HSIZE;
+  logic  [15 : 0]                 MST_U0_RD_IMP_HSIZE;
   logic  [ 7 : 0]                 MST_U0_WR_IMP_COOR_MINX;
   logic  [ 7 : 0]                 MST_U0_RD_IMP_COOR_MINX;
-  logic  [ 7 : 0]                 MST_U0_WR_IMP_VSIZE;
-  logic  [ 7 : 0]                 MST_U0_RD_IMP_VSIZE;
+  logic  [15 : 0]                 MST_U0_WR_IMP_VSIZE;
+  logic  [15 : 0]                 MST_U0_RD_IMP_VSIZE;
   logic  [ 7 : 0]                 MST_U0_WR_IMP_COOR_MINY;
   logic  [ 7 : 0]                 MST_U0_RD_IMP_COOR_MINY;
   logic  [31 : 0]                 MST_U0_WR_IMP_ADR_PITCH;
@@ -169,58 +165,16 @@ ma_clks_group_gen u0_ma_clks_group_gen (
   .REG_ICG_ON_I2C                 ( REG_ICG_ON_I2C    ),
   .REG_ICG_ON_IMP                 ( REG_ICG_ON_IMP    ),
 
+  .G0_CPU_RST_N                   ( G0_CPU_RST_N      ),
   .G0_CPU_CLK                     ( G0_CPU_CLK        ),
+  .AXI_RST_N                      ( AXI_RST_N         ),
   .AXI_CLK                        ( AXI_CLK           ),
+  .APB_RST_N                      ( APB_RST_N         ),
   .APB_CLK                        ( APB_CLK           ),
+  .I2C_RST_N                      ( I2C_RST_N         ),
   .I2C_CLK                        ( I2C_CLK           ),
+  .IMP_RST_N                      ( IMP_RST_N         ),
   .IMP_CLK                        ( IMP_CLK           )
-);
-
-// ************************************************************************************************************** //
-//   $$$$$$$\                                     $$\            $$$$$$\                                          //
-//   $$  __$$\                                    $$ |          $$  __$$\                                         //
-//   $$ |  $$ |  $$$$$$\    $$$$$$$\   $$$$$$\  $$$$$$\         $$ /  \__|  $$$$$$\   $$$$$$$\                    //
-//   $$$$$$$  | $$  __$$\  $$  _____| $$  __$$\ \_$$  _|        $$ |$$$$\  $$  __$$\  $$  __$$\                   //
-//   $$  __$$<  $$$$$$$$ | \$$$$$$\   $$$$$$$$ |  $$ |          $$ |\_$$ | $$$$$$$$ | $$ |  $$ |                  //
-//   $$ |  $$ | $$   ____|  \____$$\  $$   ____|  $$ |$$\       $$ |  $$ | $$   ____| $$ |  $$ |                  //
-//   $$ |  $$ | \$$$$$$$\  $$$$$$$  | \$$$$$$$\   \$$$$  |      \$$$$$$  | \$$$$$$$\  $$ |  $$ |                  //
-//   \__|  \__|  \_______| \_______/   \_______|   \____/        \______/   \_______| \__|  \__|                  //
-// ************************************************************************************************************** //
-
-ma_sync_rst u0_cpu_sync_rst (
-  .ASYNC_RST_N                    ( PoR_rst_n    ),
-  .CLK                            ( G0_CPU_CLK   ),
-  .TEST_MODE                      ( 1'b0         ),
-  .TEST_RST_N                     ( 1'b1         ),
-  .RST_N                          ( G0_CPU_RST_N )
-);
-ma_sync_rst u1_axi_sync_rst (
-  .ASYNC_RST_N                    ( PoR_rst_n    ),
-  .CLK                            ( AXI_CLK      ),
-  .TEST_MODE                      ( 1'b0         ),
-  .TEST_RST_N                     ( 1'b1         ),
-  .RST_N                          ( AXI_RST_N    )
-);
-ma_sync_rst u2_apb_sync_rst (
-  .ASYNC_RST_N                    ( PoR_rst_n    ),
-  .CLK                            ( APB_CLK      ),
-  .TEST_MODE                      ( 1'b0         ),
-  .TEST_RST_N                     ( 1'b1         ),
-  .RST_N                          ( APB_RST_N    )
-);
-ma_sync_rst u3_i2c_sync_rst (
-  .ASYNC_RST_N                    ( PoR_rst_n    ),
-  .CLK                            ( I2C_CLK      ),
-  .TEST_MODE                      ( 1'b0         ),
-  .TEST_RST_N                     ( 1'b1         ),
-  .RST_N                          ( I2C_RST_N    )
-);
-ma_sync_rst u4_imp_sync_rst (
-  .ASYNC_RST_N                    ( PoR_rst_n    ),
-  .CLK                            ( IMP_CLK      ),
-  .TEST_MODE                      ( 1'b0         ),
-  .TEST_RST_N                     ( 1'b1         ),
-  .RST_N                          ( IMP_RST_N    )
 );
 
 
@@ -245,9 +199,9 @@ axi_lite_reg_intf_wrap #(
   .AXI_DATA_WIDTH                 ( AXI_DATA_WIDTH      ),
   .byte_t                         ( byte_t              )
 ) u0_axi_lite_reg_warp (
-  .rst_n                          ( AXI_RST_N               ),
-  .clk                            ( AXI_CLK                 ),
-  .slv                            ( axi_slv[2]              ),
+  .rst_n                          ( AXI_RST_N                           ),
+  .clk                            ( AXI_CLK                             ),
+  .slv                            ( axi_slv[`SOC_MEM_MAP_AXI_REGF0_ID]  ),
 
   .MST_U0_WR_IMP_HSIZE            ( MST_U0_WR_IMP_HSIZE     ),
   .MST_U0_RD_IMP_HSIZE            ( MST_U0_RD_IMP_HSIZE     ),
@@ -293,26 +247,26 @@ apb_regs_intf_wrap #(
   .apb_reg_prdata                 ( apb_prdata_i[0]       ),
   .apb_reg_pslverr                ( apb_pslverr_i[0]      ),
 
-  .REG_CLK_DIV_CPU                ( REG_CLK_DIV_CPU       ),                              // fw : 0x0013_0000
-  .REG_CLK_TOG_CPU                ( REG_CLK_TOG_CPU       ),                              // fw : 0x0013_0004
-  .REG_CLK_CKEN_CPU               ( REG_CLK_CKEN_CPU      ),                              // fw : 0x0013_0004
-  .REG_CLK_DIV_AXI                ( REG_CLK_DIV_AXI       ),                              // fw : 0x0013_0000
-  .REG_CLK_TOG_AXI                ( REG_CLK_TOG_AXI       ),                              // fw : 0x0013_0004
-  .REG_CLK_CKEN_AXI               ( REG_CLK_CKEN_AXI      ),                              // fw : 0x0013_0004
-  .REG_CLK_DIV_APB                ( REG_CLK_DIV_APB       ),                              // fw : 0x0013_0000
-  .REG_CLK_TOG_APB                ( REG_CLK_TOG_APB       ),                              // fw : 0x0013_0004
-  .REG_CLK_CKEN_APB               ( REG_CLK_CKEN_APB      ),                              // fw : 0x0013_0004
-  .REG_CLK_DIV_I2C                ( REG_CLK_DIV_I2C       ),                              // fw : 0x0013_0000
-  .REG_CLK_TOG_I2C                ( REG_CLK_TOG_I2C       ),                              // fw : 0x0013_0004
-  .REG_CLK_CKEN_I2C               ( REG_CLK_CKEN_I2C      ),                              // fw : 0x0013_0004
-  .REG_CLK_DIV_IMP                ( REG_CLK_DIV_IMP       ),                              // fw : 0x0013_0000
-  .REG_CLK_TOG_IMP                ( REG_CLK_TOG_IMP       ),                              // fw : 0x0013_0004
-  .REG_CLK_CKEN_IMP               ( REG_CLK_CKEN_IMP      ),                              // fw : 0x0013_0004
-  .REG_ICG_ON_CPU                 ( REG_ICG_ON_CPU        ),                              // fw : 0x0013_0008
-  .REG_ICG_ON_AXI                 ( REG_ICG_ON_AXI        ),                              // fw : 0x0013_0008
-  .REG_ICG_ON_APB                 ( REG_ICG_ON_APB        ),                              // fw : 0x0013_0008
-  .REG_ICG_ON_I2C                 ( REG_ICG_ON_I2C        ),                              // fw : 0x0013_0008
-  .REG_ICG_ON_IMP                 ( REG_ICG_ON_IMP        )                               // fw : 0x0013_0008
+  .REG_CLK_DIV_CPU                ( REG_CLK_DIV_CPU       ),                              // fw : 0x0011_0000
+  .REG_CLK_TOG_CPU                ( REG_CLK_TOG_CPU       ),                              // fw : 0x0011_0004
+  .REG_CLK_CKEN_CPU               ( REG_CLK_CKEN_CPU      ),                              // fw : 0x0011_0004
+  .REG_CLK_DIV_AXI                ( REG_CLK_DIV_AXI       ),                              // fw : 0x0011_0000
+  .REG_CLK_TOG_AXI                ( REG_CLK_TOG_AXI       ),                              // fw : 0x0011_0004
+  .REG_CLK_CKEN_AXI               ( REG_CLK_CKEN_AXI      ),                              // fw : 0x0011_0004
+  .REG_CLK_DIV_APB                ( REG_CLK_DIV_APB       ),                              // fw : 0x0011_0000
+  .REG_CLK_TOG_APB                ( REG_CLK_TOG_APB       ),                              // fw : 0x0011_0004
+  .REG_CLK_CKEN_APB               ( REG_CLK_CKEN_APB      ),                              // fw : 0x0011_0004
+  .REG_CLK_DIV_I2C                ( REG_CLK_DIV_I2C       ),                              // fw : 0x0011_0000
+  .REG_CLK_TOG_I2C                ( REG_CLK_TOG_I2C       ),                              // fw : 0x0011_0004
+  .REG_CLK_CKEN_I2C               ( REG_CLK_CKEN_I2C      ),                              // fw : 0x0011_0004
+  .REG_CLK_DIV_IMP                ( REG_CLK_DIV_IMP       ),                              // fw : 0x0011_0000
+  .REG_CLK_TOG_IMP                ( REG_CLK_TOG_IMP       ),                              // fw : 0x0011_0004
+  .REG_CLK_CKEN_IMP               ( REG_CLK_CKEN_IMP      ),                              // fw : 0x0011_0004
+  .REG_ICG_ON_CPU                 ( REG_ICG_ON_CPU        ),                              // fw : 0x0011_0008
+  .REG_ICG_ON_AXI                 ( REG_ICG_ON_AXI        ),                              // fw : 0x0011_0008
+  .REG_ICG_ON_APB                 ( REG_ICG_ON_APB        ),                              // fw : 0x0011_0008
+  .REG_ICG_ON_I2C                 ( REG_ICG_ON_I2C        ),                              // fw : 0x0011_0008
+  .REG_ICG_ON_IMP                 ( REG_ICG_ON_IMP        )                               // fw : 0x0011_0008
 );
 // ************************************************************************************************************** //
 //    $$$$$$\    $$$$$$$\    $$\   $$\                                                                            //
@@ -362,6 +316,26 @@ picorv32_axi #(
   .trace_valid                    ( trace_valid                    ),
   .trace_data                     ( trace_data                     )
 );
+//rst_11 = por_rst && fw
+//always_ff @(posedge clk or negedge rst_11) begin : proc_
+//  if(~rst_11) begin
+//    rst_n_vec <= 2'b0;
+//  end else begin
+//    rst_n_vec <= {rst_n_vec[0] , 1'b1};
+//
+//  end
+//end
+
+// ************************************************************************************************************** //
+//   $$$$$$\  $$\      $$\  $$$$$$$\                                                                                //
+//   \_$$  _| $$$\    $$$ | $$  __$$\                                                                               //
+//     $$ |   $$$$\  $$$$ | $$ |  $$ |                                                                              //
+//     $$ |   $$\$$\$$ $$ | $$$$$$$  |                                                                              //
+//     $$ |   $$ \$$$  $$ | $$  ____/                                                                               //
+//     $$ |   $$ |\$  /$$ | $$ |                                                                                    //
+//   $$$$$$\  $$ | \_/ $$ | $$ |                                                                                    //
+//   \______| \__|     \__| \__|                                                                                    //
+// ************************************************************************************************************** //
 
 mst_imp_wrap #(
   .REG_NUM_BYTES                  ( AXI_REG_NUM_BYTES       ),
@@ -370,10 +344,8 @@ mst_imp_wrap #(
   //.PITCH_WIDTH                    ( 9                       ),
   .byte_t                         ( byte_t                  )
 ) u0_mst_imp_wrap (
-  .PoR_rst_n                      ( IMP_RST_N               ), // TODO
-  .fw_rst_n                       ( IMP_RST_N               ),
-  .sw_rst_n                       ( IMP_RST_N               ),
-  .clk                            ( IMP_CLK                 ),
+  .rst_n_IMP                      ( IMP_RST_N               ), // TODO
+  .clk_IMP                        ( IMP_CLK                 ),
   //.reg_q_rdat                     ( reg_q_rdat              ), // input from Register File Wrapper Config.
   .mst_imp                        ( axi_mst[1]              ),
 
@@ -493,50 +465,74 @@ axi4_memory #(
   .VERBOSE                        ( VERBOSE           )
 ) u0_pulp_axi4_mem (
   .clk                            ( AXI_CLK             ),
-  .mem_axi_awvalid                ( axi_slv[0].aw_valid ),  // i
-  .mem_axi_awready                ( axi_slv[0].aw_ready ),  // o
-  .mem_axi_awaddr                 ( axi_slv[0].aw_addr  ),  // i
-  .mem_axi_awprot                 ( axi_slv[0].aw_prot  ),  // i
-  .mem_axi_wvalid                 ( axi_slv[0].w_valid  ),  // i
-  .mem_axi_wready                 ( axi_slv[0].w_ready  ),  // o
-  .mem_axi_wdata                  ( axi_slv[0].w_data   ),  // i
-  .mem_axi_wstrb                  ( axi_slv[0].w_strb   ),  // i
-  .mem_axi_bvalid                 ( axi_slv[0].b_valid  ),  // o
-  .mem_axi_bready                 ( axi_slv[0].b_ready  ),  // i
-  .mem_axi_bresp                  ( axi_slv[0].b_resp   ),  // o
-  .mem_axi_arvalid                ( axi_slv[0].ar_valid ),  // i
-  .mem_axi_arready                ( axi_slv[0].ar_ready ),  // o
-  .mem_axi_araddr                 ( axi_slv[0].ar_addr  ),  // i
-  .mem_axi_arprot                 ( axi_slv[0].ar_prot  ),  // i
-  .mem_axi_rvalid                 ( axi_slv[0].r_valid  ),  // o
-  .mem_axi_rready                 ( axi_slv[0].r_ready  ),  // i
-  .mem_axi_rdata                  ( axi_slv[0].r_data   ),  // o
-  .mem_axi_rresp                  ( axi_slv[0].r_resp   ),  // o
+  .mem_axi_awvalid                ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].aw_valid ),  // i
+  .mem_axi_awready                ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].aw_ready ),  // o
+  .mem_axi_awaddr                 ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].aw_addr  ),  // i
+  .mem_axi_awprot                 ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].aw_prot  ),  // i
+  .mem_axi_wvalid                 ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].w_valid  ),  // i
+  .mem_axi_wready                 ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].w_ready  ),  // o
+  .mem_axi_wdata                  ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].w_data   ),  // i
+  .mem_axi_wstrb                  ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].w_strb   ),  // i
+  .mem_axi_bvalid                 ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].b_valid  ),  // o
+  .mem_axi_bready                 ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].b_ready  ),  // i
+  .mem_axi_bresp                  ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].b_resp   ),  // o
+  .mem_axi_arvalid                ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].ar_valid ),  // i
+  .mem_axi_arready                ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].ar_ready ),  // o
+  .mem_axi_araddr                 ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].ar_addr  ),  // i
+  .mem_axi_arprot                 ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].ar_prot  ),  // i
+  .mem_axi_rvalid                 ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].r_valid  ),  // o
+  .mem_axi_rready                 ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].r_ready  ),  // i
+  .mem_axi_rdata                  ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].r_data   ),  // o
+  .mem_axi_rresp                  ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].r_resp   ),  // o
   .tests_passed                   ( tests_passed                  )   // o
 );
 
 axi_lite_memory u0_axi_lite_memory (
   .rst_n                          ( AXI_RST_N           ),
   .clk                            ( AXI_CLK             ),
-  .s_aw_valid                     ( axi_slv[1].aw_valid ),
-  .s_aw_ready                     ( axi_slv[1].aw_ready ),
-  .s_aw_addr                      ( axi_slv[1].aw_addr  ),
-  .s_aw_prot                      ( axi_slv[1].aw_prot  ),
-  .s_w_valid                      ( axi_slv[1].w_valid  ),
-  .s_w_ready                      ( axi_slv[1].w_ready  ),
-  .s_w_data                       ( axi_slv[1].w_data   ),
-  .s_w_strb                       ( axi_slv[1].w_strb   ),
-  .s_b_valid                      ( axi_slv[1].b_valid  ),
-  .s_b_ready                      ( axi_slv[1].b_ready  ),
-  .s_b_resp                       ( axi_slv[1].b_resp   ),
-  .s_ar_valid                     ( axi_slv[1].ar_valid ),
-  .s_ar_ready                     ( axi_slv[1].ar_ready ),
-  .s_ar_addr                      ( axi_slv[1].ar_addr  ),
-  .s_ar_prot                      ( axi_slv[1].ar_prot  ),
-  .s_r_valid                      ( axi_slv[1].r_valid  ),
-  .s_r_ready                      ( axi_slv[1].r_ready  ),
-  .s_r_data                       ( axi_slv[1].r_data   ),
-  .s_r_resp                       ( axi_slv[1].r_resp   )
+  .s_aw_valid                     ( axi_slv[`SOC_MEM_MAP_AXI_RAM1_ID].aw_valid ),
+  .s_aw_ready                     ( axi_slv[`SOC_MEM_MAP_AXI_RAM1_ID].aw_ready ),
+  .s_aw_addr                      ( axi_slv[`SOC_MEM_MAP_AXI_RAM1_ID].aw_addr  ),
+  .s_aw_prot                      ( axi_slv[`SOC_MEM_MAP_AXI_RAM1_ID].aw_prot  ),
+  .s_w_valid                      ( axi_slv[`SOC_MEM_MAP_AXI_RAM1_ID].w_valid  ),
+  .s_w_ready                      ( axi_slv[`SOC_MEM_MAP_AXI_RAM1_ID].w_ready  ),
+  .s_w_data                       ( axi_slv[`SOC_MEM_MAP_AXI_RAM1_ID].w_data   ),
+  .s_w_strb                       ( axi_slv[`SOC_MEM_MAP_AXI_RAM1_ID].w_strb   ),
+  .s_b_valid                      ( axi_slv[`SOC_MEM_MAP_AXI_RAM1_ID].b_valid  ),
+  .s_b_ready                      ( axi_slv[`SOC_MEM_MAP_AXI_RAM1_ID].b_ready  ),
+  .s_b_resp                       ( axi_slv[`SOC_MEM_MAP_AXI_RAM1_ID].b_resp   ),
+  .s_ar_valid                     ( axi_slv[`SOC_MEM_MAP_AXI_RAM1_ID].ar_valid ),
+  .s_ar_ready                     ( axi_slv[`SOC_MEM_MAP_AXI_RAM1_ID].ar_ready ),
+  .s_ar_addr                      ( axi_slv[`SOC_MEM_MAP_AXI_RAM1_ID].ar_addr  ),
+  .s_ar_prot                      ( axi_slv[`SOC_MEM_MAP_AXI_RAM1_ID].ar_prot  ),
+  .s_r_valid                      ( axi_slv[`SOC_MEM_MAP_AXI_RAM1_ID].r_valid  ),
+  .s_r_ready                      ( axi_slv[`SOC_MEM_MAP_AXI_RAM1_ID].r_ready  ),
+  .s_r_data                       ( axi_slv[`SOC_MEM_MAP_AXI_RAM1_ID].r_data   ),
+  .s_r_resp                       ( axi_slv[`SOC_MEM_MAP_AXI_RAM1_ID].r_resp   )
+);
+
+axi_lite_imp_memory u0_axi_lite_imp_memory (
+  .rst_n                          ( AXI_RST_N           ),
+  .clk                            ( AXI_CLK             ),
+  .s_aw_valid                     ( axi_slv[`SOC_MEM_MAP_AXI_IMPI_ID].aw_valid ),
+  .s_aw_ready                     ( axi_slv[`SOC_MEM_MAP_AXI_IMPI_ID].aw_ready ),
+  .s_aw_addr                      ( axi_slv[`SOC_MEM_MAP_AXI_IMPI_ID].aw_addr  ),
+  .s_aw_prot                      ( axi_slv[`SOC_MEM_MAP_AXI_IMPI_ID].aw_prot  ),
+  .s_w_valid                      ( axi_slv[`SOC_MEM_MAP_AXI_IMPI_ID].w_valid  ),
+  .s_w_ready                      ( axi_slv[`SOC_MEM_MAP_AXI_IMPI_ID].w_ready  ),
+  .s_w_data                       ( axi_slv[`SOC_MEM_MAP_AXI_IMPI_ID].w_data   ),
+  .s_w_strb                       ( axi_slv[`SOC_MEM_MAP_AXI_IMPI_ID].w_strb   ),
+  .s_b_valid                      ( axi_slv[`SOC_MEM_MAP_AXI_IMPI_ID].b_valid  ),
+  .s_b_ready                      ( axi_slv[`SOC_MEM_MAP_AXI_IMPI_ID].b_ready  ),
+  .s_b_resp                       ( axi_slv[`SOC_MEM_MAP_AXI_IMPI_ID].b_resp   ),
+  .s_ar_valid                     ( axi_slv[`SOC_MEM_MAP_AXI_IMPI_ID].ar_valid ),
+  .s_ar_ready                     ( axi_slv[`SOC_MEM_MAP_AXI_IMPI_ID].ar_ready ),
+  .s_ar_addr                      ( axi_slv[`SOC_MEM_MAP_AXI_IMPI_ID].ar_addr  ),
+  .s_ar_prot                      ( axi_slv[`SOC_MEM_MAP_AXI_IMPI_ID].ar_prot  ),
+  .s_r_valid                      ( axi_slv[`SOC_MEM_MAP_AXI_IMPI_ID].r_valid  ),
+  .s_r_ready                      ( axi_slv[`SOC_MEM_MAP_AXI_IMPI_ID].r_ready  ),
+  .s_r_data                       ( axi_slv[`SOC_MEM_MAP_AXI_IMPI_ID].r_data   ),
+  .s_r_resp                       ( axi_slv[`SOC_MEM_MAP_AXI_IMPI_ID].r_resp   )
 );
 
 

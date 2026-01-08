@@ -63,7 +63,13 @@ module sim_picorv_x_pulp_soc #(
 
 // picorv32_wrapper part
 reg [15 : 0] count_cycle = 0;
-reg [1023:0] firmware_file;
+reg [32760:0] firmware_file;                                                               //@@ why? 1023
+reg [4095:0] image_in_file_0;
+reg [4095:0] image_in_file_1;
+reg [4095:0] image_in_file_2;
+//reg [4095:0] image_in_file_4;
+//reg [4095:0] image_in_file_5;
+//reg [4095:0] image_in_file_6;
 always @(posedge i_soc.G0_CPU_CLK/*clk*/) count_cycle <= i_soc.G0_CPU_RST_N ? count_cycle + 1 : 0;
 always @* begin
     i_soc.irq = 0;
@@ -71,32 +77,41 @@ always @* begin
     i_soc.irq[5] = &count_cycle[15:0];
   end
 
-  initial begin
-    if (!$value$plusargs("firmware=%s", firmware_file))
-      firmware_file = "/home/matthew/project/riscv_workspace/2-sim/sim_soc/firmware/firmware.hex";
-    $readmemh(firmware_file, i_soc.u0_pulp_axi4_mem.memory);
-    $fsdbDumpMDA;
-  end
+initial begin
+//  if (!$value$plusargs("firmware=%s", firmware_file))
+  firmware_file = "/home/matthew/project/riscv_workspace/2-sim/sim_soc/firmware/firmware.hex";
+  image_in_file_0 = "/home/matthew/project/riscv_workspace/2-sim/sim_soc/image_in/img_640x480.hex";
+  image_in_file_1 = "/home/matthew/project/riscv_workspace/2-sim/sim_soc/rain_image_in/pattern_1/T_20240115_113412_023.hex";
+  image_in_file_2 = "/home/matthew/project/riscv_workspace/2-sim/sim_soc/rain_image_in/pattern_1/T_20240115_113412_024.hex";
+  //image_in_file_3 = "/home/matthew/project/riscv_workspace/2-sim/sim_soc/rain_image_in/o_20231205_064002_002.hex";
+  //image_in_file_4 = "/home/matthew/project/riscv_workspace/2-sim/sim_soc/rain_image_in/o_20231205_064002_002.hex";
+  //image_in_file_5 = "/home/matthew/project/riscv_workspace/2-sim/sim_soc/rain_image_in/o_20231205_064002_002.hex";
+  $readmemh(firmware_file, i_soc.u0_pulp_axi4_mem.memory);
+  $readmemh(image_in_file_0, i_soc.u0_axi_lite_imp_memory.u0_SRAM1R1W_32X131072.inst.native_mem_mapped_module.blk_mem_gen_v8_4_11_inst.memory); //+ 0x000000
+  $readmemh(image_in_file_1, i_soc.u0_axi_lite_imp_memory.u1_SRAM1R1W_32X131072.inst.native_mem_mapped_module.blk_mem_gen_v8_4_11_inst.memory); //+ 0x080000
+  $readmemh(image_in_file_2, i_soc.u0_axi_lite_imp_memory.u2_SRAM1R1W_32X131072.inst.native_mem_mapped_module.blk_mem_gen_v8_4_11_inst.memory); //+ 0x100000
+  $fsdbDumpMDA;
+end
 
-  integer cycle_counter;
-  always @(posedge i_soc.G0_CPU_CLK/*clk*/) begin
-    cycle_counter <= i_soc.G0_CPU_RST_N ? cycle_counter + 1 : 0;
-    if (i_soc.G0_CPU_RST_N && trap) begin
+integer cycle_counter;
+always @(posedge i_soc.G0_CPU_CLK/*clk*/) begin
+  cycle_counter <= i_soc.G0_CPU_RST_N ? cycle_counter + 1 : 0;
+  if (i_soc.G0_CPU_RST_N && trap) begin
 `ifndef VERILATOR
-      repeat (10) @(posedge i_soc.G0_CPU_CLK/*clk*/);
+    repeat (10) @(posedge i_soc.G0_CPU_CLK/*clk*/);
 `endif
-      $display("TRAP after %1d clock cycles", cycle_counter);
-      if (i_soc.tests_passed) begin
-        $display("ALL TESTS PASSED.");
+    $display("TRAP after %1d clock cycles", cycle_counter);
+    if (i_soc.tests_passed) begin
+      $display("ALL TESTS PASSED.");
+      $finish;
+    end else begin
+      $display("ERROR!");
+      if ($test$plusargs("noerror"))
         $finish;
-      end else begin
-        $display("ERROR!");
-        if ($test$plusargs("noerror"))
-          $finish;
-        $stop;
-      end
+      $stop;
     end
   end
+end
 
 // ***********************/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**\**\****/**/**
 //                       /**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/***
