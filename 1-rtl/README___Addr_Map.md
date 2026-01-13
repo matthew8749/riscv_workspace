@@ -18,8 +18,10 @@
 | 0x0010_0000 .. 0x0010_FFFF | AXI Register File (REGF0)               | 64    KB  |
 | 0x0011_0000 .. 0x0011_FFFF | APB_Bus                                 | 64    KB  |
 | 0x0012_0000 .. 0x0013_FFFF | RAM1 : u0_axi_lite_memory               | 128   KB  |
-| 0x0014_0000 .. 0x~~~~~~~~~ | ** unUSED                               |           |
+| 0x0014_0000 .. 0x0FFF_FFFF | ** unUSED                               |           |
+| 0x1000_0000 .. 0x3FFF_FFFF | for some setting of FW                  |           |
 | 0x4000_0000 .. 0x412B_FFFF | IMP MEM : IMP read Memory (16frames)    | 18.75 MB  |
+| 0x412C_0000 .. 0xFFFF_FFFF | ** unUSED                               |           |
 
 #
 ```txt
@@ -79,6 +81,11 @@ BACKBONE Address Map (Complete System)
              │ unUSED                      │
              │                             │
              │                             │
+0x2000_0000  ├─────────────────────────────┤
+             │                             │
+             │                             │
+0x1000_0000  ├─────────────────────────────┤  // firmware print output address : 0x1000_0000
+             │ unUSED                      │
              │                             │
 0x0014_0000  ├─────────────────────────────┤
 0x0013_FFFF  │                             │
