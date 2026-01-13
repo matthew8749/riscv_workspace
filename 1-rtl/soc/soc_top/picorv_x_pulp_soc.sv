@@ -78,6 +78,19 @@ module picorv_x_pulp_soc #(
   logic                           I2C_CLK     ;
   logic                           IMP_CLK     ;
 
+  // apb
+  logic [AXI_ADDR_WIDTH-1 :0]                       apb_paddr_o;
+  logic [NO_APB_SLAVES -1 :0]                       apb_pselx_o;
+  logic [               2 :0]                       apb_pprot_o;
+  logic                                             apb_penable_o;
+  logic                                             apb_pwrite_o;
+  logic [AXI_DATA_WIDTH-1 :0]                       apb_pwdata_o;
+  logic [AXI_STRB_WIDTH-1 :0]                       apb_pstrb_o;
+  logic [NO_APB_SLAVES -1 :0]                       apb_pready_i;
+  logic [NO_APB_SLAVES -1 :0] [AXI_DATA_WIDTH-1 :0] apb_prdata_i;
+  logic [NO_APB_SLAVES -1 :0]                       apb_pslverr_i;
+  logic [REG_DATA_WIDTH-1 :0] [NO_APB_REGS-1    :0] apb_reg_data_o;
+
   // axi lite reg
   byte_t [AXI_REG_NUM_BYTES-1: 0] reg_q_rdat;
   logic  [15 : 0]                 MST_U0_WR_IMP_HSIZE;
@@ -94,20 +107,6 @@ module picorv_x_pulp_soc #(
   logic  [31 : 0]                 MST_U0_RD_IMP_SRC_BADDR;
   logic                           MST_U0_WR_IMP_ST;
   logic                           MST_U0_RD_IMP_ST;
-
-  // apb
-  logic [AXI_ADDR_WIDTH-1 :0]                       apb_paddr_o;
-  logic [NO_APB_SLAVES -1 :0]                       apb_pselx_o;
-  logic [               2 :0]                       apb_pprot_o;
-  logic                                             apb_penable_o;
-  logic                                             apb_pwrite_o;
-  logic [AXI_DATA_WIDTH-1 :0]                       apb_pwdata_o;
-  logic [AXI_STRB_WIDTH-1 :0]                       apb_pstrb_o;
-  logic [NO_APB_SLAVES -1 :0]                       apb_pready_i;
-  logic [NO_APB_SLAVES -1 :0] [AXI_DATA_WIDTH-1 :0] apb_prdata_i;
-  logic [NO_APB_SLAVES -1 :0]                       apb_pslverr_i;
-  logic [REG_DATA_WIDTH-1 :0] [NO_APB_REGS-1    :0] apb_reg_data_o;
-
   // APB CRG
   wire        [ 3: 0]             REG_CLK_DIV_CPU  ;
   wire                            REG_CLK_TOG_CPU  ;
@@ -129,6 +128,7 @@ module picorv_x_pulp_soc #(
   wire                            REG_ICG_ON_APB;
   wire                            REG_ICG_ON_I2C;
   wire                            REG_ICG_ON_IMP;
+
   // picorv32_wrapper part
   wire                            tests_passed;
   reg         [31 : 0]            irq = 0;
@@ -460,31 +460,55 @@ apb_i2c #(
 //   $$ | \_/ $$ |  $$$$$$$$\   $$ | \_/ $$ |   $$$$$$  |  $$ |  $$ |     $$ |                                    //
 //   \__|     \__|  \________|  \__|     \__|   \______/   \__|  \__|     \__|                                    //
 // ************************************************************************************************************** //
-axi4_memory #(
-  .AXI_TEST                       ( AXI_TEST          ),
-  .VERBOSE                        ( VERBOSE           )
-) u0_pulp_axi4_mem (
+// axi4_memory #(
+//   .AXI_TEST                       ( AXI_TEST          ),
+//   .VERBOSE                        ( VERBOSE           )
+// ) u0_pulp_axi4_mem (
+//   .clk                            ( AXI_CLK             ),
+//   .mem_axi_awvalid                ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].aw_valid ),  // i
+//   .mem_axi_awready                ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].aw_ready ),  // o
+//   .mem_axi_awaddr                 ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].aw_addr  ),  // i
+//   .mem_axi_awprot                 ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].aw_prot  ),  // i
+//   .mem_axi_wvalid                 ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].w_valid  ),  // i
+//   .mem_axi_wready                 ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].w_ready  ),  // o
+//   .mem_axi_wdata                  ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].w_data   ),  // i
+//   .mem_axi_wstrb                  ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].w_strb   ),  // i
+//   .mem_axi_bvalid                 ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].b_valid  ),  // o
+//   .mem_axi_bready                 ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].b_ready  ),  // i
+//   .mem_axi_bresp                  ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].b_resp   ),  // o
+//   .mem_axi_arvalid                ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].ar_valid ),  // i
+//   .mem_axi_arready                ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].ar_ready ),  // o
+//   .mem_axi_araddr                 ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].ar_addr  ),  // i
+//   .mem_axi_arprot                 ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].ar_prot  ),  // i
+//   .mem_axi_rvalid                 ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].r_valid  ),  // o
+//   .mem_axi_rready                 ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].r_ready  ),  // i
+//   .mem_axi_rdata                  ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].r_data   ),  // o
+//   .mem_axi_rresp                  ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].r_resp   ),  // o
+//   .tests_passed                   ( tests_passed                  )   // o
+// );
+
+axi_lite_memory u0_pulp_axi4_mem (
+  .rst_n                          ( AXI_RST_N           ),
   .clk                            ( AXI_CLK             ),
-  .mem_axi_awvalid                ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].aw_valid ),  // i
-  .mem_axi_awready                ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].aw_ready ),  // o
-  .mem_axi_awaddr                 ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].aw_addr  ),  // i
-  .mem_axi_awprot                 ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].aw_prot  ),  // i
-  .mem_axi_wvalid                 ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].w_valid  ),  // i
-  .mem_axi_wready                 ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].w_ready  ),  // o
-  .mem_axi_wdata                  ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].w_data   ),  // i
-  .mem_axi_wstrb                  ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].w_strb   ),  // i
-  .mem_axi_bvalid                 ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].b_valid  ),  // o
-  .mem_axi_bready                 ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].b_ready  ),  // i
-  .mem_axi_bresp                  ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].b_resp   ),  // o
-  .mem_axi_arvalid                ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].ar_valid ),  // i
-  .mem_axi_arready                ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].ar_ready ),  // o
-  .mem_axi_araddr                 ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].ar_addr  ),  // i
-  .mem_axi_arprot                 ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].ar_prot  ),  // i
-  .mem_axi_rvalid                 ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].r_valid  ),  // o
-  .mem_axi_rready                 ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].r_ready  ),  // i
-  .mem_axi_rdata                  ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].r_data   ),  // o
-  .mem_axi_rresp                  ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].r_resp   ),  // o
-  .tests_passed                   ( tests_passed                  )   // o
+  .s_aw_valid                     ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].aw_valid ),
+  .s_aw_ready                     ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].aw_ready ),
+  .s_aw_addr                      ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].aw_addr  ),
+  .s_aw_prot                      ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].aw_prot  ),
+  .s_w_valid                      ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].w_valid  ),
+  .s_w_ready                      ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].w_ready  ),
+  .s_w_data                       ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].w_data   ),
+  .s_w_strb                       ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].w_strb   ),
+  .s_b_valid                      ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].b_valid  ),
+  .s_b_ready                      ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].b_ready  ),
+  .s_b_resp                       ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].b_resp   ),
+  .s_ar_valid                     ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].ar_valid ),
+  .s_ar_ready                     ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].ar_ready ),
+  .s_ar_addr                      ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].ar_addr  ),
+  .s_ar_prot                      ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].ar_prot  ),
+  .s_r_valid                      ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].r_valid  ),
+  .s_r_ready                      ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].r_ready  ),
+  .s_r_data                       ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].r_data   ),
+  .s_r_resp                       ( axi_slv[`SOC_MEM_MAP_AXI_ROM0_ID].r_resp   )
 );
 
 axi_lite_memory u0_axi_lite_memory (
