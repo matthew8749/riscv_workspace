@@ -69,10 +69,12 @@ module BACKBONE
     localparam axi_pkg::xbar_cfg_t xbar_cfg = '{
       NoSlvPorts   : NO_AXI_MASTERS,
       NoMstPorts   : XBAR_INT_NO_SLAVE,
-      MaxMstTrans  : 32'd1,
-      MaxSlvTrans  : 32'd1,
-      FallThrough  : 1'b1,                // @@
+      MaxMstTrans  : 32'd4,
+      MaxSlvTrans  : 32'd4,
+      FallThrough  : 1'b0,                // @@
       LatencyMode  : axi_pkg::CUT_ALL_AX,
+      //LatencyMode  : axi_pkg::NO_LATENCY,
+      //LatencyMode  : axi_pkg::CUT_ALL_PORTS,
       AxiAddrWidth : AXI_ADDR_WIDTH,
       AxiDataWidth : AXI_DATA_WIDTH,
       NoAddrRules  : XBAR_INT_NO_SLAVE,
@@ -119,7 +121,8 @@ module BACKBONE
 //                       /**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/****\**\**/**/***
 // *********************/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/******\**\/**/****
 
-// ===========================================================================
+// =========================================================================== FOR " axi_lite_xbar_intf "
+//                 [     BACKBONE.connect_mst     ]
 //                    master[0] ......  master[n]
 //                     (CUP)            (mst_IP)
 //                       ^                 ^
@@ -137,6 +140,7 @@ module BACKBONE
 //                       v                 v
 //                    slave[0]  ......  slave[n]
 //                     (ROM)             (RAM)
+//                 [     BACKBONE.connect_slv     ]
 // ===========================================================================
   axi_lite_xbar_intf #(
   .Cfg                            ( xbar_cfg      ),
