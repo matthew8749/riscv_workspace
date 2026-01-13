@@ -28,10 +28,10 @@ module sim_picorv_x_pulp_soc #(
   initial begin
     if ($test$plusargs("vcd")) begin
       $dumpfile("sim_picorv_x_pulp_soc.vcd");
-      $dumpvars(0, sim_picorv_x_pulp_soc);
+      $dumpvars(0, sim_picorv_x_pulp_soc,"+all");
     end else begin
       $fsdbDumpfile("sim_picorv_x_pulp_soc.fsdb");
-      $fsdbDumpvars(0, sim_picorv_x_pulp_soc, "+mda");
+      $fsdbDumpvars(0, sim_picorv_x_pulp_soc, "+mda", "+all");
       $fsdbDumpMDA();
     end
     repeat (1000000) @(posedge i_soc.G0_CPU_CLK/*clk*/);
@@ -86,7 +86,7 @@ initial begin
   //image_in_file_3 = "/home/matthew/project/riscv_workspace/2-sim/sim_soc/rain_image_in/o_20231205_064002_002.hex";
   //image_in_file_4 = "/home/matthew/project/riscv_workspace/2-sim/sim_soc/rain_image_in/o_20231205_064002_002.hex";
   //image_in_file_5 = "/home/matthew/project/riscv_workspace/2-sim/sim_soc/rain_image_in/o_20231205_064002_002.hex";
-  $readmemh(firmware_file, i_soc.u0_pulp_axi4_mem.memory);
+  $readmemh(firmware_file, i_soc.u0_pulp_axi4_mem.u0_SRAM1R1W_32X32768.inst.native_mem_mapped_module.blk_mem_gen_v8_4_11_inst.memory);
   $readmemh(image_in_file_0, i_soc.u0_axi_lite_imp_memory.u0_SRAM1R1W_32X131072.inst.native_mem_mapped_module.blk_mem_gen_v8_4_11_inst.memory); //+ 0x000000
   $readmemh(image_in_file_1, i_soc.u0_axi_lite_imp_memory.u1_SRAM1R1W_32X131072.inst.native_mem_mapped_module.blk_mem_gen_v8_4_11_inst.memory); //+ 0x080000
   $readmemh(image_in_file_2, i_soc.u0_axi_lite_imp_memory.u2_SRAM1R1W_32X131072.inst.native_mem_mapped_module.blk_mem_gen_v8_4_11_inst.memory); //+ 0x100000
